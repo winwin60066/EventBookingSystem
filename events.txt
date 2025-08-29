@@ -1,0 +1,2 @@
+1||test1|2024-12-12|01:11 to 01:33|Hall 1|
+2|Seminar|test2|2025-12-12|04:12 to 12:11|Hall 2|test2  okok end desc
