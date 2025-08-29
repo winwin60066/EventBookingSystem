@@ -1,0 +1,14 @@
+1. edit output
+2. edit main Menu
+3. output for halls
+4. clear screen
+5. after select one option then can select action to maybe exit or back or swicth to other pages
+6. endlines
+7. edit event details
+
+
+
+text file 可能会要换format， 可能后面会需要加custname和description/remark之类的
+
+-----------------------------------------------------------------------------------------------------------------
+        cout << "\n------ Event Summary ------\n";
