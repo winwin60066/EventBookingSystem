@@ -254,8 +254,9 @@ void bookingOnDate(vector<Event>& events, int &eventCount, int eventAvail[12 * 3
 
     } while (confirmation != 'y');
 
-    newEvent.id = eventCount + 1;
-    events[eventCount++] = newEvent;
+    newEvent.id = events.size() + 1;
+    events.push_back(newEvent);
+    eventCount = events.size();
     cout << "Booking successful!\n";
 
     saveEvents(events, eventCount, EVENTS_FILE);
@@ -359,7 +360,7 @@ void checkAvailability(vector<Event>& events, int &eventCount, int eventAvail[12
         }
         else
         {
-            cout << left << setw(1) << "Available" << " |\n";
+            cout << left << setw(12) << "Available" << " |\n";
         }
     }
 
@@ -438,18 +439,19 @@ void loadEventFromFile(vector<Event>& events, int &eventCount, int eventAvail[12
         getline(ss, venueStr, '|');
         getline(ss, descStr);
 
-        events[eventCount].id = stoi(idStr);
-        events[eventCount].eventType = eventTypeStr;
-        events[eventCount].eventName = eventNameStr;
-        events[eventCount].timeDuration = timeStr;
-        events[eventCount].venue.venue = venueStr;
-        events[eventCount].eventDesc = descStr;
+        Event evt;
+        evt.id = stoi(idStr);
+        evt.eventType = eventTypeStr;
+        evt.eventName = eventNameStr;
+        evt.timeDuration = timeStr;
+        evt.venue.venue = venueStr;
+        evt.eventDesc = descStr;
 
         // parse date yyyy-mm-dd
         int year = stoi(dateStr.substr(0, 4));
         int month = stoi(dateStr.substr(5, 2));
         int day = stoi(dateStr.substr(8, 2));
-        events[eventCount].date = {day, month, year};
+        evt.date = {day, month, year};
 
         // mark availability
         int dayIndex = (month - 1) * 31 + (day - 1);
@@ -462,9 +464,9 @@ void loadEventFromFile(vector<Event>& events, int &eventCount, int eventAvail[12
             }
         }
 
-        eventCount++;
+        events.push_back(evt);
     }
-
+    eventCount = events.size();
     inEventFile.close();
 }
 
