@@ -1,5 +1,4 @@
-2|Seminar|test2|2025-12-12|04:12 to 12:11|Hall 2|Chairs: 0, Tables: 0, Booths: 0, Projectors: 0, Bins: 0, Helpers: 0, Tents: 0|
-3|Seminar|sem1|2025-12-12|12:12 to 12:13|Hall 3|Chairs: 0, Tables: 0, Booths: 0, Projectors: 0, Bins: 0, Helpers: 0, Tents: 0|
-3|Seminar|sem3|2025-12-12|03:13 to 04:55|Hall 1|Chairs: 0, Tables: 0, Booths: 0, Projectors: 0, Bins: 0, Helpers: 0, Tents: 0|okok
-4|Talk|talk1|2025-12-13|03:22 to 03:33|Hall 1|Chairs: 0, Tables: 0, Booths: 0, Projectors: 0, Bins: 0, Helpers: 0, Tents: 0|dec1
-5|Seminar|sem88|2025-12-12|03:33 to 14:55|Hall 4|Chairs: 0, Tables: 0, Booths: 45, Projectors: 0, Bins: 0, Helpers: 0, Tents: 0|descdesc
+1|Seminar|sem1|2025-12-12|12:12 to 12:13|Hall 3|0,0,0,0,0,0,0|
+2|Seminar|sem3|2025-12-12|03:13 to 04:55|Hall 1|0,0,0,0,0,0,0|okok
+3|Talk|talk1|2025-12-13|03:22 to 03:33|Hall 1|0,0,0,0,0,0,0|dec1
+4|Seminar|sem88|2025-12-12|03:33 to 14:55|Hall 4|0,0,0,0,0,0,0|descdesc
