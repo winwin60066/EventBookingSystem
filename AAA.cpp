@@ -134,51 +134,59 @@ void displayEvents(vector<Event>& events, int eventCount, int eventAvail[12*31][
         return;
     }
 
+    // Show all events only once
+    cout << left    
+         << setw(5) << "No"
+         << setw(15) << "Event Type"
+         << setw(15) << "Event ID"
+         << setw(25) << "Event Name"
+         << setw(15) << "Date"
+         << setw(20) << "Duration"
+         << setw(20) << "Venue"
+         << setw(25) << "Description" << endl;
+
+    cout << string(125, '-') << endl;
+
+    for (int i = 0; i < eventCount; i++)
+    {
+        cout << left
+             << setw(5) << i + 1
+             << setw(15) << events[i].eventType
+             << setw(15) << events[i].id
+             << setw(25) << events[i].eventName
+             << setw(15) << events[i].date.toString()
+             << setw(20) << events[i].timeDuration
+             << setw(20) << events[i].venue.venue
+             << setw(25) << events[i].eventDesc << endl;
+    }
+
+    // Main loop only for actions
     while (true) {
-        cout << left    
-             << setw(5) << "No"
-             << setw(15) << "Event Type"
-             << setw(15) << "Event ID"
-             << setw(25) << "Event Name"
-             << setw(15) << "Date"
-             << setw(20) << "Duration"
-             << setw(20) << "Venue"
-             << setw(25) << "Description" << endl;
-
-        cout << string(125, '-') << endl;
-
-        for (int i = 0; i < eventCount; i++)
-        {
-            cout << left
-                 << setw(5) << i + 1
-                 << setw(15) << events[i].eventType
-                 << setw(15) << events[i].id
-                 << setw(25) << events[i].eventName
-                 << setw(15) << events[i].date.toString()
-                 << setw(20) << events[i].timeDuration
-                 << setw(20) << events[i].venue.venue
-                 << setw(25) << events[i].eventDesc << endl;
-        }
-
         int option;
-        cout << "\n[1] Search event\n[2] Delete event\n[3] Back to Main Menu\nSelect option: ";
+        cout << "\n[1] Search event\n[2] Delete event\n[3] Display all event list\n[4] Back to Main Menu\nSelect option: ";
         cin >> option;
         cin.ignore(); // clear newline
 
         switch(option) {
-            case 1:
-                searchEvents(events, eventCount);
-                break;
-            case 2:
-                deleteEvent(events, eventCount, eventAvail, EVENTS_FILE);
-                break;
-            case 3:
-                return; // go back to main menu
-            default:
-                cout << "Invalid input! Try again.\n";
+        case 1:
+            searchEvents(events, eventCount);
+            break;
+        case 2:
+            deleteEvent(events, eventCount, eventAvail, EVENTS_FILE);
+            break;
+        case 3:
+            displayEvents(events, eventCount, eventAvail, EVENTS_FILE);
+            break;
+        case 4:
+            mainMenu(events, eventCount, eventAvail, EVENTS_FILE);
+            break;
+        default:
+            cout << "Invalid input! Try again.\n";
+            break;
         }
     }
 }
+
 
 void searchEvents(vector<Event>& events, int eventCount) {
         vector<Event> filteredEvents;
@@ -234,7 +242,7 @@ void deleteEvent(vector<Event>& events, int &eventCount, int eventAvail[12*31][5
     cin >> index;
 
     if (index == 0) {
-        cout << "Delete cancelled.\n";
+        cout << "\n[Delete cancelled]\n";
         return;
     }
 
@@ -246,7 +254,7 @@ void deleteEvent(vector<Event>& events, int &eventCount, int eventAvail[12*31][5
     // Ask for confirmation
     char confirm;
     cout << "Are you sure you want to delete event \"" 
-         << events[index - 1].eventName << "\"? (y/n): ";
+        << events[index - 1].eventName << "\"? (y/n): ";
     cin >> confirm;
 
     if (tolower(confirm) == 'y') {

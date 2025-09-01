@@ -20,3 +20,22 @@
             break;
         default:
             cout << "Invalid option! Please select again!\n";
+
+
+
+            char option;
+    do {
+        cout << "Do you want to continue (y/n): ";
+        cin >> option;
+        option = tolower(option);
+
+        if (option == 'y') {
+            mainMenu(events, eventCount, eventAvail, EVENTS_FILE);
+            break;
+        } else if (option == 'n') {
+            cout << "\n[Exiting program...]\n";
+            break;
+        } else {
+            cout << "\n[Invalid input! Please enter 'y' or 'n']\n";
+        }
+    } while (true);
