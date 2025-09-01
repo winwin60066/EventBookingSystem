@@ -22,7 +22,7 @@ struct Date
     {
         stringstream ss;
         ss << year << "-" << setw(2) << setfill('0') << month
-        << "-" << setw(2) << setfill('0') << day;
+           << "-" << setw(2) << setfill('0') << day;
         return ss.str();
     }
 };
@@ -87,19 +87,21 @@ struct Event
 };
 
 // Function declarations
-void saveEvents(vector<Event>& events, int eventCount, const string &EVENTS_FILE);
-void loadEventFromFile(vector<Event>& events, int &eventCount, int eventAvail[12 * 31][5], const string &EVENTS_FILE);
-void mainMenu(vector<Event>& events, int &eventCount, int eventAvail[12 * 31][5], const string &EVENTS_FILE);
-void searchEvents(vector<Event>& events, int eventCount);
-void deleteEvent(vector<Event>& events, int &eventCount, int eventAvail[12*31][5], const string &EVENTS_FILE);
+void saveEvents(vector<Event> &events, int eventCount, const string &EVENTS_FILE);
+void loadEventFromFile(vector<Event> &events, int &eventCount, int eventAvail[12 * 31][5], const string &EVENTS_FILE);
+void mainMenu(vector<Event> &events, int &eventCount, int eventAvail[12 * 31][5], const string &EVENTS_FILE);
+void searchEvents(vector<Event> &events, int eventCount);
+void deleteEvent(vector<Event> &events, int &eventCount, int eventAvail[12 * 31][5], const string &EVENTS_FILE);
 
-void displayFilteredEvents(vector<Event>& filteredEvents) {
-    if (filteredEvents.empty()) {
+void displayFilteredEvents(vector<Event> &filteredEvents)
+{
+    if (filteredEvents.empty())
+    {
         cout << "No events found.\n";
         return;
     }
 
-    cout << left    
+    cout << left
          << setw(5) << "No"
          << setw(15) << "Event Type"
          << setw(15) << "Event ID"
@@ -125,8 +127,7 @@ void displayFilteredEvents(vector<Event>& filteredEvents) {
     }
 }
 
-
-void displayEvents(vector<Event>& events, int eventCount, int eventAvail[12*31][5], const string &EVENTS_FILE)
+void displayEvents(vector<Event> &events, int eventCount, int eventAvail[12 * 31][5], const string &EVENTS_FILE)
 {
     if (eventCount == 0)
     {
@@ -135,7 +136,7 @@ void displayEvents(vector<Event>& events, int eventCount, int eventAvail[12*31][
     }
 
     // Show all events only once
-    cout << left    
+    cout << left
          << setw(5) << "No"
          << setw(15) << "Event Type"
          << setw(15) << "Event ID"
@@ -161,13 +162,15 @@ void displayEvents(vector<Event>& events, int eventCount, int eventAvail[12*31][
     }
 
     // Main loop only for actions
-    while (true) {
+    while (true)
+    {
         int option;
         cout << "\n[1] Search event\n[2] Delete event\n[3] Display all event list\n[4] Back to Main Menu\nSelect option: ";
         cin >> option;
         cin.ignore(); // clear newline
 
-        switch(option) {
+        switch (option)
+        {
         case 1:
             searchEvents(events, eventCount);
             break;
@@ -187,52 +190,73 @@ void displayEvents(vector<Event>& events, int eventCount, int eventAvail[12*31][
     }
 }
 
+void searchEvents(vector<Event> &events, int eventCount)
+{
+    vector<Event> filteredEvents;
 
-void searchEvents(vector<Event>& events, int eventCount) {
-        vector<Event> filteredEvents;
-        
-        int choice;
-        cout << "\nSearch event by:\n";
-        cout << "[1] Event Type\n[2] Event ID\n[3] Event Name\n[4] Date (yyyy-mm-dd)\n[5] Venue\n";
-        cout << "Select option: ";
-        cin >> choice;
-        cin.ignore(); // clear newline
+    int choice;
+    cout << "\nSearch event by:\n";
+    cout << "[1] Event Type\n[2] Event ID\n[3] Event Name\n[4] Date (yyyy-mm-dd)\n[5] Venue\n";
+    cout << "Select option: ";
+    cin >> choice;
+    cin.ignore(); // clear newline
 
-        string keyword, searchEventType;
+    string keyword, searchEventType;
 
-        if (choice == 1) {
-            int option;
-            cout << "[1] Seminar\n[2] Talk\nSelect event type: ";
-            cin >> option; cin.ignore();
-            if(option == 1) searchEventType = "Seminar";
-            else if(option == 2) searchEventType = "Talk";
-            else { cout << "Invalid option!\n"; return; }
-        } else {
-            cout << "Enter keyword: ";
-            getline(cin, keyword);
+    if (choice == 1)
+    {
+        int option;
+        cout << "[1] Seminar\n[2] Talk\nSelect event type: ";
+        cin >> option;
+        cin.ignore();
+        if (option == 1)
+            searchEventType = "Seminar";
+        else if (option == 2)
+            searchEventType = "Talk";
+        else
+        {
+            cout << "Invalid option!\n";
+            return;
         }
+    }
+    else
+    {
+        cout << "Enter keyword: ";
+        getline(cin, keyword);
+    }
 
-        for (int i = 0; i < eventCount; i++) {
-            bool match = false;
-            if(choice == 1) match = (events[i].eventType == searchEventType);
-            else if(choice == 2) match = (events[i].id == stoi(keyword));
-            else if(choice == 3) match = (events[i].eventName.find(keyword) != string::npos);
-            else if(choice == 4) match = (events[i].date.toString() == keyword);
-            else if(choice == 5) match = (events[i].venue.venue.find(keyword) != string::npos);
+    for (int i = 0; i < eventCount; i++)
+    {
+        bool match = false;
+        if (choice == 1)
+            match = (events[i].eventType == searchEventType);
+        else if (choice == 2)
+            match = (events[i].id == stoi(keyword));
+        else if (choice == 3)
+            match = (events[i].eventName.find(keyword) != string::npos);
+        else if (choice == 4)
+            match = (events[i].date.toString() == keyword);
+        else if (choice == 5)
+            match = (events[i].venue.venue.find(keyword) != string::npos);
 
-            if(match) filteredEvents.push_back(events[i]);
-        }
+        if (match)
+            filteredEvents.push_back(events[i]);
+    }
 
-        if(filteredEvents.empty()) {
-            cout << "No events found.\n";
-        }else{
-            displayFilteredEvents(filteredEvents);
-        } 
+    if (filteredEvents.empty())
+    {
+        cout << "No events found.\n";
+    }
+    else
+    {
+        displayFilteredEvents(filteredEvents);
+    }
 }
 
-
-void deleteEvent(vector<Event>& events, int &eventCount, int eventAvail[12*31][5], const string &EVENTS_FILE) {
-    if (eventCount == 0) {
+void deleteEvent(vector<Event> &events, int &eventCount, int eventAvail[12 * 31][5], const string &EVENTS_FILE)
+{
+    if (eventCount == 0)
+    {
         cout << "No events available to delete.\n";
         return;
     }
@@ -241,62 +265,74 @@ void deleteEvent(vector<Event>& events, int &eventCount, int eventAvail[12*31][5
     cout << "\nEnter the event number to delete (0 to cancel): ";
     cin >> index;
 
-    if (index == 0) {
+    if (index == 0)
+    {
         cout << "\n[Delete cancelled]\n";
         return;
     }
 
-    if (index < 1 || index > eventCount) {
+    if (index < 1 || index > eventCount)
+    {
         cout << "Invalid event number.\n";
         return;
     }
 
     // Ask for confirmation
     char confirm;
-    cout << "Are you sure you want to delete event \"" 
-        << events[index - 1].eventName << "\"? (y/n): ";
+    cout << "Are you sure you want to delete event \""
+         << events[index - 1].eventName << "\"? (y/n): ";
     cin >> confirm;
 
-    if (tolower(confirm) == 'y') {
+    if (tolower(confirm) == 'y')
+    {
         // Free up the venue availability
-        Event& eventToDelete = events[index - 1];
+        Event &eventToDelete = events[index - 1];
         int dayIndex = (eventToDelete.date.month - 1) * 31 + (eventToDelete.date.day - 1);
         string venueStr = eventToDelete.venue.venue;
-        
-        if (venueStr.size() >= 6 && venueStr.substr(0,4) == "Hall") {
-            try {
+
+        if (venueStr.size() >= 6 && venueStr.substr(0, 4) == "Hall")
+        {
+            try
+            {
                 int hall = stoi(venueStr.substr(5)) - 1; // "Hall 1" -> get "1"
-                if (hall >= 0 && hall < 5 && dayIndex >= 0 && dayIndex < 12 * 31) {
+                if (hall >= 0 && hall < 5 && dayIndex >= 0 && dayIndex < 12 * 31)
+                {
                     eventAvail[dayIndex][hall] = 0; // Free the venue
                 }
-            } catch (...) {
+            }
+            catch (...)
+            {
                 // Ignore if venue parsing fails
             }
         }
-        
+
         events.erase(events.begin() + (index - 1));
         eventCount--;
-        
+
         // Update IDs to be sequential
-        for (int i = 0; i < eventCount; i++) {
+        for (int i = 0; i < eventCount; i++)
+        {
             events[i].id = i + 1;
         }
 
         cout << "Event deleted successfully.\n";
         saveEvents(events, eventCount, EVENTS_FILE); // Save after deletion
-    } else {
+    }
+    else
+    {
         cout << "Delete cancelled.\n";
     }
 }
 
-void bookingOnDate(vector<Event>& events, int &eventCount, int eventAvail[12 * 31][5], const string &EVENTS_FILE)
+void bookingOnDate(vector<Event> &events, int &eventCount, int eventAvail[12 * 31][5], const string &EVENTS_FILE)
 {
     Event newEvent;
     char confirmation;
     string date;
     int year, month, day;
 
-    do {
+    do
+    {
         cout << "\n------ Event Booking ------\n";
         int eventTypeChoice;
         cout << "\n[1] Seminar\n[2] Talk\n\nSelect event type: ";
@@ -314,35 +350,44 @@ void bookingOnDate(vector<Event>& events, int &eventCount, int eventAvail[12 * 3
         getline(cin, newEvent.eventName);
 
         // Date validation loop
-        while (true) {
+        while (true)
+        {
             cout << "\nEnter date to check venue availability (yyyy-mm-dd): ";
             cin >> date;
 
             // Format check
-            if (date.length() != 10 || date[4] != '-' || date[7] != '-') {
+            if (date.length() != 10 || date[4] != '-' || date[7] != '-')
+            {
                 cout << "\n[Invalid date format! Use yyyy-mm-dd]\n";
                 continue;
             }
 
             // Digit check
             bool validDigits = true;
-            for (int i = 0; i < date.size(); i++) {
-                if (i == 4 || i == 7) continue; // skip dashes
-                if (!isdigit(date[i])) {
+            for (int i = 0; i < date.size(); i++)
+            {
+                if (i == 4 || i == 7)
+                    continue; // skip dashes
+                if (!isdigit(date[i]))
+                {
                     validDigits = false;
                     break;
                 }
             }
-            if (!validDigits) {
+            if (!validDigits)
+            {
                 cout << "\n[Invalid date input! Please enter numbers]\n";
                 continue;
             }
 
-            try {
+            try
+            {
                 year = stoi(date.substr(0, 4));
                 month = stoi(date.substr(5, 2));
                 day = stoi(date.substr(8, 2));
-            } catch (...) {
+            }
+            catch (...)
+            {
                 cout << "\n[Invalid numbers in date]\n";
                 continue;
             }
@@ -351,7 +396,8 @@ void bookingOnDate(vector<Event>& events, int &eventCount, int eventAvail[12 * 3
             time_t now = time(0);
             tm *ltm = localtime(&now);
             int currentYear = 1900 + ltm->tm_year;
-            if (year < currentYear || year > currentYear + 5) {
+            if (year < currentYear || year > currentYear + 5)
+            {
                 cout << "\n[Year out of allowed range! (" << currentYear << " - " << currentYear + 5 << ")]\n";
                 continue;
             }
@@ -361,11 +407,13 @@ void bookingOnDate(vector<Event>& events, int &eventCount, int eventAvail[12 * 3
             if ((year % 4 == 0 && year % 100 != 0) || (year % 400 == 0))
                 monthDays[1] = 29;
 
-            if (month < 1 || month > 12) {
+            if (month < 1 || month > 12)
+            {
                 cout << "\n[Invalid month! Must be 1-12]\n";
                 continue;
             }
-            if (day < 1 || day > monthDays[month - 1]) {
+            if (day < 1 || day > monthDays[month - 1])
+            {
                 cout << "\n[Invalid day for this month]\n";
                 continue;
             }
@@ -376,23 +424,29 @@ void bookingOnDate(vector<Event>& events, int &eventCount, int eventAvail[12 * 3
         }
 
         // Start time validation
-        while (true) {
+        while (true)
+        {
             cout << "\nEnter start time (hh:mm): ";
             cin >> newEvent.startTime;
 
-            if (newEvent.startTime.length() != 5 || newEvent.startTime[2] != ':') {
+            if (newEvent.startTime.length() != 5 || newEvent.startTime[2] != ':')
+            {
                 cout << "\n[Invalid time format! Please follow (hh:mm) and only enter numbers]\n";
                 continue;
             }
 
-            try {
+            try
+            {
                 int startHours = stoi(newEvent.startTime.substr(0, 2));
                 int startMinutes = stoi(newEvent.startTime.substr(3, 2));
-                if (startHours < 0 || startHours > 23 || startMinutes < 0 || startMinutes > 59) {
+                if (startHours < 0 || startHours > 23 || startMinutes < 0 || startMinutes > 59)
+                {
                     cout << "\n[Invalid start time values!]\n";
                     continue;
                 }
-            } catch (...) {
+            }
+            catch (...)
+            {
                 cout << "Invalid input! Please enter numbers only.\n";
                 continue;
             }
@@ -400,30 +454,37 @@ void bookingOnDate(vector<Event>& events, int &eventCount, int eventAvail[12 * 3
         }
 
         // End time validation
-        while (true) {
+        while (true)
+        {
             cout << "\nEnter end time (hh:mm): ";
             cin >> newEvent.endTime;
 
-            if (newEvent.endTime.length() != 5 || newEvent.endTime[2] != ':') {
+            if (newEvent.endTime.length() != 5 || newEvent.endTime[2] != ':')
+            {
                 cout << "\n[Invalid time format! Please follow (hh:mm) and only enter numbers]\n";
                 continue;
             }
 
-            try {
+            try
+            {
                 int startHours = stoi(newEvent.startTime.substr(0, 2));
                 int startMinutes = stoi(newEvent.startTime.substr(3, 2));
                 int endHours = stoi(newEvent.endTime.substr(0, 2));
                 int endMinutes = stoi(newEvent.endTime.substr(3, 2));
 
-                if (endHours < 0 || endHours > 23 || endMinutes < 0 || endMinutes > 59) {
+                if (endHours < 0 || endHours > 23 || endMinutes < 0 || endMinutes > 59)
+                {
                     cout << "\n[Invalid end time values!]\n";
                     continue;
                 }
-                if (endHours < startHours || (endHours == startHours && endMinutes <= startMinutes)) {
+                if (endHours < startHours || (endHours == startHours && endMinutes <= startMinutes))
+                {
                     cout << "\n[End time must be later than start time!]\n";
                     continue;
                 }
-            } catch (...) {
+            }
+            catch (...)
+            {
                 cout << "Invalid input! Please enter numbers only.\n";
                 continue;
             }
@@ -432,18 +493,21 @@ void bookingOnDate(vector<Event>& events, int &eventCount, int eventAvail[12 * 3
 
         // Venue selection
         int selectedVenue, venueIndex, dayIndex;
-        while (true) {
+        while (true)
+        {
             cout << "\n---------- Venues ----------\n[1] Hall 1\n[2] Hall 2\n[3] Hall 3\n[4] Hall 4\n[5] Hall 5\nSelect venue: ";
             cin >> selectedVenue;
             venueIndex = selectedVenue - 1;
 
-            if (venueIndex < 0 || venueIndex > 4) {
+            if (venueIndex < 0 || venueIndex > 4)
+            {
                 cout << "Invalid venue!\n";
                 continue;
             }
 
             dayIndex = (newEvent.date.month - 1) * 31 + (newEvent.date.day - 1);
-            if (eventAvail[dayIndex][venueIndex] == 1) {
+            if (eventAvail[dayIndex][venueIndex] == 1)
+            {
                 cout << "\n[Venue already booked! Please choose again]\n";
                 continue;
             }
@@ -457,26 +521,30 @@ void bookingOnDate(vector<Event>& events, int &eventCount, int eventAvail[12 * 3
         cout << "\n---------- Equipment Selection ----------\n";
         string equipmentNames[] = {"Chairs", "Tables", "Booths", "Projectors", "Bins", "Helpers", "Tents"};
 
-        for (int i = 0; i < 7; i++) {
+        for (int i = 0; i < 7; i++)
+        {
             int quantity;
-            while (true) {
+            while (true)
+            {
                 cout << "Enter number of " << equipmentNames[i] << ": ";
                 cin >> quantity;
-                
+
                 // Check for input failure (non-numeric input)
-                if (cin.fail()) {
+                if (cin.fail())
+                {
                     cout << "[Please enter a valid number (0 or positive)]\n";
                     cin.clear();
                     cin.ignore(1000, '\n');
                     continue;
                 }
-                
+
                 // Check for negative numbers
-                if (quantity < 0) {
+                if (quantity < 0)
+                {
                     cout << "[Please enter a valid number (0 or positive)]\n";
                     continue;
                 }
-                
+
                 break;
             }
             newEvent.equipments[i] = quantity;
@@ -515,64 +583,80 @@ void bookingOnDate(vector<Event>& events, int &eventCount, int eventAvail[12 * 3
     saveEvents(events, eventCount, EVENTS_FILE);
 
     char option;
-    do {
+    do
+    {
         cout << "Do you want to continue (y/n): ";
         cin >> option;
         option = tolower(option);
 
-        if (option == 'y') {
+        if (option == 'y')
+        {
             mainMenu(events, eventCount, eventAvail, EVENTS_FILE);
             break;
-        } else if (option == 'n') {
+        }
+        else if (option == 'n')
+        {
             cout << "\n[Exiting program...]\n";
             break;
-        } else {
+        }
+        else
+        {
             cout << "\n[Invalid input! Please enter 'y' or 'n']\n";
         }
     } while (true);
 }
 
-void checkAvailability(vector<Event>& events, int &eventCount, int eventAvail[12 * 31][5], const string &EVENTS_FILE)
+void checkAvailability(vector<Event> &events, int &eventCount, int eventAvail[12 * 31][5], const string &EVENTS_FILE)
 {
     cout << "\n------ Check Venue Availability ------\n";
     string date;
     int year, month, day;
 
-    while (true) {
+    while (true)
+    {
         cout << "\nEnter date to check venue availability (yyyy-mm-dd): ";
         cin >> date;
 
         // First check overall length
-        if (date.length() != 10) {
+        if (date.length() != 10)
+        {
             cout << "\n[Invalid date format! Please follow (yyyy-mm-dd) and enter numbers only]\n";
             continue;
         }
 
         // Check the '-' positions
-        if (date[4] != '-' || date[7] != '-') {
+        if (date[4] != '-' || date[7] != '-')
+        {
             cout << "\n[Invalid date format! Please follow (yyyy-mm-dd) and enter numbers only]\n";
             continue;
         }
 
         // Check that all other characters are digits
         bool validDigits = true;
-        for (int i = 0; i < date.size(); i++) {
-            if (i == 4 || i == 7) continue; // skip dashes
-            if (!isdigit(date[i])) {
+        for (int i = 0; i < date.size(); i++)
+        {
+            if (i == 4 || i == 7)
+                continue; // skip dashes
+            if (!isdigit(date[i]))
+            {
                 validDigits = false;
                 break;
             }
         }
-        if (!validDigits) {
+        if (!validDigits)
+        {
             cout << "\n[Invalid date input! Please enter numbers]\n";
             continue;
         }
 
-        try {
+        try
+        {
             year = stoi(date.substr(0, 4));
             month = stoi(date.substr(5, 2));
             day = stoi(date.substr(8, 2));
-        } catch (...) {
+        }
+        catch (...)
+        {
             cout << "Invalid date input! Please enter numbers.\n";
             continue;
         }
@@ -582,23 +666,27 @@ void checkAvailability(vector<Event>& events, int &eventCount, int eventAvail[12
         tm *ltm = localtime(&now);
         int currentYear = 1900 + ltm->tm_year;
 
-        if (year < currentYear || year > currentYear + 5) {
+        if (year < currentYear || year > currentYear + 5)
+        {
             cout << "\n[Year out of allowed range! (" << currentYear << " - " << currentYear + 5 << ") ]\n";
             continue;
         }
 
         // Handle leap years
         int monthDays[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-        if ((year % 4 == 0 && year % 100 != 0) || (year % 400 == 0)) {
+        if ((year % 4 == 0 && year % 100 != 0) || (year % 400 == 0))
+        {
             monthDays[1] = 29;
         }
 
-        if (month < 1 || month > 12) {
+        if (month < 1 || month > 12)
+        {
             cout << "\n[Invalid month! Must be between 1-12]\n";
             continue;
         }
 
-        if (day < 1 || day > monthDays[month - 1]) {
+        if (day < 1 || day > monthDays[month - 1])
+        {
             cout << "\n[Invalid day for selected month]\n";
             continue;
         }
@@ -614,11 +702,15 @@ void checkAvailability(vector<Event>& events, int &eventCount, int eventAvail[12
     cout << "|  Venue  |    Status    |\n";
     cout << "+---------+--------------+\n";
 
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 5; i++)
+    {
         cout << "| " << left << setw(7) << ("Hall " + to_string(i + 1)) << " | ";
-        if (eventAvail[dayIndex][i] == 1) {
+        if (eventAvail[dayIndex][i] == 1)
+        {
             cout << left << setw(12) << "Booked" << " |\n";
-        } else {
+        }
+        else
+        {
             cout << left << setw(12) << "Available" << " |\n";
         }
     }
@@ -629,27 +721,28 @@ void checkAvailability(vector<Event>& events, int &eventCount, int eventAvail[12
     int option;
     cin >> option;
 
-    switch (option) {
-        case 1:
-            return; // go back to main menu
-        case 2:
-            bookingOnDate(events, eventCount, eventAvail, EVENTS_FILE);
-            break;
-        case 3:
-            displayEvents(events, eventCount, eventAvail, EVENTS_FILE);
-            break;
-        case 0:
-            cout << "\n[Exiting program...]\n";
-            exit(0);
-            break;
-        default:
-            cout << "Invalid option! Please select again!\n";
-            checkAvailability(events, eventCount, eventAvail, EVENTS_FILE);
+    switch (option)
+    {
+    case 1:
+        return; // go back to main menu
+    case 2:
+        bookingOnDate(events, eventCount, eventAvail, EVENTS_FILE);
+        break;
+    case 3:
+        displayEvents(events, eventCount, eventAvail, EVENTS_FILE);
+        break;
+    case 0:
+        cout << "\n[Exiting program...]\n";
+        exit(0);
+        break;
+    default:
+        cout << "Invalid option! Please select again!\n";
+        checkAvailability(events, eventCount, eventAvail, EVENTS_FILE);
     }
 }
 
 // FIXED: Save equipment as comma-separated numbers only
-void saveEvents(vector<Event>& events, int eventCount, const string &EVENTS_FILE)
+void saveEvents(vector<Event> &events, int eventCount, const string &EVENTS_FILE)
 {
     ofstream outEventFile(EVENTS_FILE);
     if (!outEventFile)
@@ -678,7 +771,7 @@ void saveEvents(vector<Event>& events, int eventCount, const string &EVENTS_FILE
     outEventFile.close();
 }
 
-void loadEventFromFile(vector<Event>& events, int &eventCount, int eventAvail[12 * 31][5], const string &EVENTS_FILE)
+void loadEventFromFile(vector<Event> &events, int &eventCount, int eventAvail[12 * 31][5], const string &EVENTS_FILE)
 {
     ifstream inEventFile(EVENTS_FILE);
     if (!inEventFile)
@@ -691,30 +784,41 @@ void loadEventFromFile(vector<Event>& events, int &eventCount, int eventAvail[12
 
     while (getline(inEventFile, line))
     {
-        if (line.empty()) continue;
+        if (line.empty())
+            continue;
 
         stringstream ss(line);
         string idStr, eventTypeStr, eventNameStr, dateStr, timeStr, venueStr, equipmentStr, descStr;
 
         // Get all fields separated by |
-        if (!getline(ss, idStr, '|')) continue;
-        if (!getline(ss, eventTypeStr, '|')) continue;
-        if (!getline(ss, eventNameStr, '|')) continue;
-        if (!getline(ss, dateStr, '|')) continue;
-        if (!getline(ss, timeStr, '|')) continue;
-        if (!getline(ss, venueStr, '|')) continue;
-        if (!getline(ss, equipmentStr, '|')) continue;
+        if (!getline(ss, idStr, '|'))
+            continue;
+        if (!getline(ss, eventTypeStr, '|'))
+            continue;
+        if (!getline(ss, eventNameStr, '|'))
+            continue;
+        if (!getline(ss, dateStr, '|'))
+            continue;
+        if (!getline(ss, timeStr, '|'))
+            continue;
+        if (!getline(ss, venueStr, '|'))
+            continue;
+        if (!getline(ss, equipmentStr, '|'))
+            continue;
         getline(ss, descStr);
 
         Event evt;
-        
+
         // Parse ID with error handling
-        try {
+        try
+        {
             evt.id = stoi(idStr);
-        } catch (...) {
+        }
+        catch (...)
+        {
             continue;
         }
-        
+
         evt.eventType = eventTypeStr;
         evt.eventName = eventNameStr;
         evt.timeDuration = timeStr;
@@ -722,39 +826,52 @@ void loadEventFromFile(vector<Event>& events, int &eventCount, int eventAvail[12
         evt.eventDesc = descStr;
 
         // Parse date yyyy-mm-dd with error handling
-        try {
-            if (dateStr.length() >= 10) {
+        try
+        {
+            if (dateStr.length() >= 10)
+            {
                 int year = stoi(dateStr.substr(0, 4));
                 int month = stoi(dateStr.substr(5, 2));
                 int day = stoi(dateStr.substr(8, 2));
                 evt.date = {day, month, year};
-            } else {
+            }
+            else
+            {
                 continue;
             }
-        } catch (...) {
+        }
+        catch (...)
+        {
             continue;
         }
 
         // Parse equipment string "x,y,z,..." with error handling
-        try {
+        try
+        {
             stringstream es(equipmentStr);
             string token;
             vector<int> eq;
-            
-            while (getline(es, token, ',')) {
-                if (!token.empty()) {
+
+            while (getline(es, token, ','))
+            {
+                if (!token.empty())
+                {
                     eq.push_back(stoi(token));
-                } else {
+                }
+                else
+                {
                     eq.push_back(0);
                 }
             }
 
             // Ensure we have exactly 7 equipment values
-            while (eq.size() < 7) {
+            while (eq.size() < 7)
+            {
                 eq.push_back(0);
             }
 
-            if (eq.size() >= 7) {
+            if (eq.size() >= 7)
+            {
                 evt.equipments.chairs = eq[0];
                 evt.equipments.tables = eq[1];
                 evt.equipments.booths = eq[2];
@@ -763,7 +880,9 @@ void loadEventFromFile(vector<Event>& events, int &eventCount, int eventAvail[12
                 evt.equipments.helpers = eq[5];
                 evt.equipments.tents = eq[6];
             }
-        } catch (...) {
+        }
+        catch (...)
+        {
             // If equipment parsing fails, set all to 0
             evt.equipments.chairs = 0;
             evt.equipments.tables = 0;
@@ -775,28 +894,34 @@ void loadEventFromFile(vector<Event>& events, int &eventCount, int eventAvail[12
         }
 
         // Mark availability with error handling
-        try {
+        try
+        {
             int dayIndex = (evt.date.month - 1) * 31 + (evt.date.day - 1);
-            if (dayIndex >= 0 && dayIndex < 12 * 31) {
-                if (venueStr.size() >= 6 && venueStr.substr(0,4) == "Hall") {
+            if (dayIndex >= 0 && dayIndex < 12 * 31)
+            {
+                if (venueStr.size() >= 6 && venueStr.substr(0, 4) == "Hall")
+                {
                     int hall = stoi(venueStr.substr(5)) - 1; // "Hall 1" -> get "1"
-                    if (hall >= 0 && hall < 5) {
+                    if (hall >= 0 && hall < 5)
+                    {
                         eventAvail[dayIndex][hall] = 1;
                     }
                 }
             }
-        } catch (...) {
+        }
+        catch (...)
+        {
             // Skip availability marking if it fails
         }
 
         events.push_back(evt);
     }
-    
+
     eventCount = events.size();
     inEventFile.close();
 }
 
-void mainMenu(vector<Event>& events, int &eventCount, int eventAvail[12 * 31][5], const string &EVENTS_FILE)
+void mainMenu(vector<Event> &events, int &eventCount, int eventAvail[12 * 31][5], const string &EVENTS_FILE)
 {
     int option;
     do

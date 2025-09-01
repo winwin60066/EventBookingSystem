@@ -1,11 +1,11 @@
 1. edit output
-2. edit main Menu
-3. output for halls
+//2. edit main Menu
+//3. output for halls
 4. clear screen
-5. after select one option then can select action to maybe exit or back or swicth to other pages
+//5. after select one option then can select action to maybe exit or back or swicth to other pages
 6. endlines
 7. edit event details
-8. search and delete event got problem - delete havent do for search event type and after search for result will directly show the complete list again
+//8. search and delete event got problem - delete havent do for search event type and after search for result will directly show the complete list again
     other than that the function is well(tested)
 
 
