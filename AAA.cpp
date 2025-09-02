@@ -84,7 +84,28 @@ struct Event
     Equipment equipments;
     string eventDesc;
     double paid = 0.00;
+    int expectedPartiQty; //expected qty
+    int actualPartiQty; // actual participant qty
+    Organiser name;
+    Organiser phoneNo;
+    Organiser email;
+    string partiName; //participant name
 };
+
+struct Complaint{
+    int complaintId;
+    Event id;
+    Event partiName;
+    string complDesc;
+    string status; //pending, in progress, solved
+    string type; //like equipment, staff behaviour, other
+};
+
+struct Organiser{
+    string name;
+    string phoneNo;
+    string email;
+}
 
 // Function declarations
 void saveEvents(vector<Event> &events, int eventCount, const string &EVENTS_FILE);
@@ -324,7 +345,7 @@ void deleteEvent(vector<Event> &events, int &eventCount, int eventAvail[12 * 31]
     }
 }
 
-void bookingOnDate(vector<Event> &events, int &eventCount, int eventAvail[12 * 31][5], const string &EVENTS_FILE)
+void eventBooking(vector<Event> &events, int &eventCount, int eventAvail[12 * 31][5], const string &EVENTS_FILE)
 {
     Event newEvent;
     char confirmation;
@@ -575,6 +596,14 @@ void bookingOnDate(vector<Event> &events, int &eventCount, int eventAvail[12 * 3
 
     } while (confirmation != 'y');
 
+    //enter organizer details TODO
+    do{
+        while(true){
+            cout << "Enter organiser name: ";
+            cin >> organiserName;
+        }
+    }while(confirmation != 'y');
+
     newEvent.id = events.size() + 1;
     events.push_back(newEvent);
     eventCount = events.size();
@@ -726,7 +755,7 @@ void checkAvailability(vector<Event> &events, int &eventCount, int eventAvail[12
     case 1:
         return; // go back to main menu
     case 2:
-        bookingOnDate(events, eventCount, eventAvail, EVENTS_FILE);
+        eventBooking(events, eventCount, eventAvail, EVENTS_FILE);
         break;
     case 3:
         displayEvents(events, eventCount, eventAvail, EVENTS_FILE);
@@ -741,7 +770,7 @@ void checkAvailability(vector<Event> &events, int &eventCount, int eventAvail[12
     }
 }
 
-// FIXED: Save equipment as comma-separated numbers only
+
 void saveEvents(vector<Event> &events, int eventCount, const string &EVENTS_FILE)
 {
     ofstream outEventFile(EVENTS_FILE);
@@ -921,6 +950,21 @@ void loadEventFromFile(vector<Event> &events, int &eventCount, int eventAvail[12
     inEventFile.close();
 }
 
+//TODO
+void saveOrganiser(const string &ORGANISER_FILE){
+    
+    ofstream outEventFile(ORGANISER_FILE);
+    if (!outEventFile)
+    {
+        cout << "Error saving organiser details\n";
+        return;
+    }
+
+    for(int i = 0; )
+
+}
+
+
 void mainMenu(vector<Event> &events, int &eventCount, int eventAvail[12 * 31][5], const string &EVENTS_FILE)
 {
     int option;
@@ -940,7 +984,7 @@ void mainMenu(vector<Event> &events, int &eventCount, int eventAvail[12 * 31][5]
             checkAvailability(events, eventCount, eventAvail, EVENTS_FILE);
             break;
         case 2:
-            bookingOnDate(events, eventCount, eventAvail, EVENTS_FILE);
+            eventBooking(events, eventCount, eventAvail, EVENTS_FILE);
             break;
         case 3:
             displayEvents(events, eventCount, eventAvail, EVENTS_FILE);
@@ -957,9 +1001,13 @@ void mainMenu(vector<Event> &events, int &eventCount, int eventAvail[12 * 31][5]
 int main()
 {
     vector<Event> events;
+    //vector<Participant> participants;
+    vector<Complaint> complaints;
     int eventCount = 0;
     int eventAvail[12 * 31][5] = {0};
+    int complaintCount = 0; //TODO
     const string EVENTS_FILE = "events.txt";
+    const string ORGANISER_FILE = "organiser.txt";
 
     loadEventFromFile(events, eventCount, eventAvail, EVENTS_FILE);
     mainMenu(events, eventCount, eventAvail, EVENTS_FILE);

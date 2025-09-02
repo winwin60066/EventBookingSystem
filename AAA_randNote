@@ -9,8 +9,30 @@
     other than that the function is well(tested)
 9. event monitoring manage status?(not sure for what), comment, participant complain event?
 10. use enum.h instead of direct declare struct
-11. attendance tracking
+11. attendance tracking(event monitoring)
 12. equipment borrow maybe need to be delete(maybe is jingshien part?)
+13. qty of participant(can be estimated)
+14. reporting can do one like show expected qty and actual qty
+15. monitoring - do track attendance(enter participant name then change status to attend-default is absent)
+struct Participant {
+    string name;
+    bool attended = false;
+};
+
+struct Event {
+    // existing fields...
+    vector<Participant> participants;
+};
+16. monitoring - event status(scheduled,ongoing,completed), generate report(navigate to that page)
+17. monitoring - complaint(add, view)
+        Event: Seminar on AI
+        ID  Category          Status       Description
+        1   Equipment         Open         Projector not working
+        2   Staff behaviour   In Progress  Staff were late
+        Enter issue ID to update status: 1
+        Mark as (1) In Progress / (2) Resolved: 2
+        [Status updated successfully!]
+18. monitoring - maybe like when i show all list of the event, i can do like only show complaint qty, so user know is it got complaint, if got then only go to see complaint
 
 //text file 可能会要换format， 可能后面会需要加custname和description/remark之类的
 
