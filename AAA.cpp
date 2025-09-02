@@ -71,6 +71,12 @@ struct Equipment
     }
 };
 
+struct Organiser{
+    string orgaName;
+    string orgaPhoneNo;
+    string orgaEmail;
+};
+
 struct Event
 {
     int id;
@@ -86,9 +92,9 @@ struct Event
     double paid = 0.00;
     int expectedPartiQty; //expected qty
     int actualPartiQty; // actual participant qty
-    Organiser name;
-    Organiser phoneNo;
-    Organiser email;
+    Organiser orgaName;
+    Organiser orgaPhoneNo;
+    Organiser orgaEmail;
     string partiName; //participant name
 };
 
@@ -101,18 +107,14 @@ struct Complaint{
     string type; //like equipment, staff behaviour, other
 };
 
-struct Organiser{
-    string name;
-    string phoneNo;
-    string email;
-}
-
 // Function declarations
 void saveEvents(vector<Event> &events, int eventCount, const string &EVENTS_FILE);
 void loadEventFromFile(vector<Event> &events, int &eventCount, int eventAvail[12 * 31][5], const string &EVENTS_FILE);
 void mainMenu(vector<Event> &events, int &eventCount, int eventAvail[12 * 31][5], const string &EVENTS_FILE);
 void searchEvents(vector<Event> &events, int eventCount);
 void deleteEvent(vector<Event> &events, int &eventCount, int eventAvail[12 * 31][5], const string &EVENTS_FILE);
+void saveOrganiser(const string &ORGANISER_FILE, const Event &newEvent);
+void loadOrganiserFromFile(vector<Event> &events, const string &ORGANISER_FILE);
 
 void displayFilteredEvents(vector<Event> &filteredEvents)
 {
@@ -538,7 +540,7 @@ void eventBooking(vector<Event> &events, int &eventCount, int eventAvail[12 * 31
             break;
         }
 
-        // Equipment selection - FIXED VERSION
+        // Equipment selection
         cout << "\n---------- Equipment Selection ----------\n";
         string equipmentNames[] = {"Chairs", "Tables", "Booths", "Projectors", "Bins", "Helpers", "Tents"};
 
@@ -596,12 +598,61 @@ void eventBooking(vector<Event> &events, int &eventCount, int eventAvail[12 * 31
 
     } while (confirmation != 'y');
 
-    //enter organizer details TODO
+    //enter organizer details
     do{
+        cin.ignore(); // Clear input buffer
+        string orgName, orgPhone, orgEmail;
+        
+        cout << "\n------ Organiser Details ------\n";
+        cout << "Enter organiser name: ";
+        getline(cin, orgName);
+        
+        // Phone validation
         while(true){
-            cout << "Enter organiser name: ";
-            cin >> organiserName;
+            cout << "Enter organiser phone number(e.g. 012-3456789): ";
+            getline(cin, orgPhone);
+            
+            // Basic phone validation (xxx-xxxxxxx format)
+            if(orgPhone.length() >= 11 && orgPhone[3] == '-'){
+                bool validPhone = true;
+                for(int i = 0; i < orgPhone.length(); i++){
+                    if(i == 3) continue; // skip dash
+                    if(!isdigit(orgPhone[i])){
+                        validPhone = false;
+                        break;
+                    }
+                }
+                if(validPhone) break;
+            }
+            cout << "[Invalid phone format! Use xxx-xxxxxxx]\n";
         }
+        
+        // Email validation
+        while(true){
+            cout << "Enter organiser email(e.g. sample@gmail.com): ";
+            cin >> orgEmail;
+            
+            // Basic email validation (contains @ and .)
+            if(orgEmail.find('@') != string::npos && orgEmail.find('.') != string::npos){
+                break;
+            }
+            cout << "[Invalid email format! Must contain @ and .]\n";
+        }
+
+        // Store organizer details
+        newEvent.orgaName.orgaName = orgName;
+        newEvent.orgaPhoneNo.orgaPhoneNo = orgPhone;
+        newEvent.orgaEmail.orgaEmail = orgEmail;
+
+        cout << "\n-------- Details Summary --------\n";
+        cout << "Organiser name: " << orgName << "\n";
+        cout << "Phone Number: " << orgPhone << "\n";
+        cout << "Email: " << orgEmail << "\n";
+                
+        cout << "\n['y' - continue/ 'n' - re-enter all details]\nConfirm all details? (y/n): ";
+        cin >> confirmation;
+        confirmation = tolower(confirmation);
+        
     }while(confirmation != 'y');
 
     newEvent.id = events.size() + 1;
@@ -795,9 +846,29 @@ void saveEvents(vector<Event> &events, int eventCount, const string &EVENTS_FILE
                      << events[i].equipments.bins << ","
                      << events[i].equipments.helpers << ","
                      << events[i].equipments.tents << "|"
-                     << events[i].eventDesc << "\n";
+                     << events[i].eventDesc << "|"
+                     << events[i].orgaName.orgaName << "\n";
     }
     outEventFile.close();
+}
+
+
+
+
+void saveOrganiser(const string &ORGANISER_FILE, const Event &newEvent){
+    ofstream outOrgFile(ORGANISER_FILE, ios::app); // append mode
+    if (!outOrgFile)
+    {
+        cout << "Error saving organiser details\n";
+        return;
+    }
+
+    outOrgFile << newEvent.id << "|"
+               << newEvent.orgaName.orgaName << "|"
+               << newEvent.orgaPhoneNo.orgaPhoneNo << "|"
+               << newEvent.orgaEmail.orgaEmail << "\n";
+    
+    outOrgFile.close();
 }
 
 void loadEventFromFile(vector<Event> &events, int &eventCount, int eventAvail[12 * 31][5], const string &EVENTS_FILE)
@@ -817,7 +888,7 @@ void loadEventFromFile(vector<Event> &events, int &eventCount, int eventAvail[12
             continue;
 
         stringstream ss(line);
-        string idStr, eventTypeStr, eventNameStr, dateStr, timeStr, venueStr, equipmentStr, descStr;
+        string idStr, eventTypeStr, eventNameStr, dateStr, timeStr, venueStr, equipmentStr, descStr, orgNameStr;
 
         // Get all fields separated by |
         if (!getline(ss, idStr, '|'))
@@ -834,7 +905,9 @@ void loadEventFromFile(vector<Event> &events, int &eventCount, int eventAvail[12
             continue;
         if (!getline(ss, equipmentStr, '|'))
             continue;
-        getline(ss, descStr);
+        if (!getline(ss, descStr, '|'))
+            continue;
+        getline(ss, orgNameStr);
 
         Event evt;
 
@@ -853,6 +926,7 @@ void loadEventFromFile(vector<Event> &events, int &eventCount, int eventAvail[12
         evt.timeDuration = timeStr;
         evt.venue.venue = venueStr;
         evt.eventDesc = descStr;
+        evt.orgaName.orgaName = orgNameStr;
 
         // Parse date yyyy-mm-dd with error handling
         try
@@ -950,20 +1024,56 @@ void loadEventFromFile(vector<Event> &events, int &eventCount, int eventAvail[12
     inEventFile.close();
 }
 
-//TODO
-void saveOrganiser(const string &ORGANISER_FILE){
-    
-    ofstream outEventFile(ORGANISER_FILE);
-    if (!outEventFile)
+
+void loadOrganiserFromFile(vector<Event> &events, const string &ORGANISER_FILE){
+    ifstream inOrgFile(ORGANISER_FILE);
+    if (!inOrgFile)
     {
-        cout << "Error saving organiser details\n";
-        return;
+        return; // no organiser file yet
     }
 
-    for(int i = 0; )
+    string line;
+    while (getline(inOrgFile, line))
+    {
+        if (line.empty())
+            continue;
 
+        stringstream ss(line);
+        string idStr, orgName, orgPhone, orgEmail;
+
+        // Get all fields separated by |
+        if (!getline(ss, idStr, '|'))
+            continue;
+        if (!getline(ss, orgName, '|'))
+            continue;
+        if (!getline(ss, orgPhone, '|'))
+            continue;
+        getline(ss, orgEmail);
+
+        try
+        {
+            int eventId = stoi(idStr);
+            
+            // Find the corresponding event and update organiser details
+            for (int i = 0; i < events.size(); i++)
+            {
+                if (events[i].id == eventId)
+                {
+                    events[i].orgaName.orgaName = orgName;
+                    events[i].orgaPhoneNo.orgaPhoneNo = orgPhone;
+                    events[i].orgaEmail.orgaEmail = orgEmail;
+                    break;
+                }
+            }
+        }
+        catch (...)
+        {
+            continue; // Skip invalid entries
+        }
+    }
+    
+    inOrgFile.close();
 }
-
 
 void mainMenu(vector<Event> &events, int &eventCount, int eventAvail[12 * 31][5], const string &EVENTS_FILE)
 {
@@ -1010,6 +1120,7 @@ int main()
     const string ORGANISER_FILE = "organiser.txt";
 
     loadEventFromFile(events, eventCount, eventAvail, EVENTS_FILE);
+    loadOrganiserFromFile(events, ORGANISER_FILE);
     mainMenu(events, eventCount, eventAvail, EVENTS_FILE);
     return 0;
 }
