@@ -7,7 +7,7 @@
 7. edit event details
 //8. search and delete event got problem - delete havent do for search event type and after search for result will directly show the complete list again
     other than that the function is well(tested)
-
+9. event monitoring manage status?(not sure for what), comment, participant complain event?
 
 //text file 可能会要换format， 可能后面会需要加custname和description/remark之类的
 
