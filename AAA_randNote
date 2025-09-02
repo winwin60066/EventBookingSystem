@@ -9,6 +9,8 @@
     other than that the function is well(tested)
 9. event monitoring manage status?(not sure for what), comment, participant complain event?
 10. use enum.h instead of direct declare struct
+11. attendance tracking
+12. equipment borrow maybe need to be delete(maybe is jingshien part?)
 
 //text file 可能会要换format， 可能后面会需要加custname和description/remark之类的
 
