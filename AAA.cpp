@@ -77,9 +77,26 @@ struct Organiser{
     string orgaEmail;
 };
 
+
+
+struct Participant{
+    string partiName;
+    bool attended;
+};
+
+struct Complaint{
+    int eventId;
+    int complaintId;
+    string complStatus; //pending, in progress, solved
+    string complType; //like equipment, staff behaviour, other
+    string reporterType; //staff or customer
+    string complDesc;
+};
+
 struct Event
 {
-    int id;
+    string eventStatus; //TODO - Scheduled, Ongoing, Completed
+    int eventId;
     string eventType;
     string eventName;
     Date date;
@@ -95,28 +112,26 @@ struct Event
     Organiser orgaName;
     Organiser orgaPhoneNo;
     Organiser orgaEmail;
-    string partiName; //participant name
-};
-
-struct Complaint{
-    int complaintId;
-    Event id;
-    Event partiName;
-    string complDesc;
-    string status; //pending, in progress, solved
-    string type; //like equipment, staff behaviour, other
+    vector<Participant> participants;  
+    vector<Complaint> complaints;  
 };
 
 // Function declarations
 void saveEvents(vector<Event> &events, int eventCount, const string &EVENTS_FILE);
 void loadEventFromFile(vector<Event> &events, int &eventCount, int eventAvail[12 * 31][5], const string &EVENTS_FILE);
-void mainMenu(vector<Event> &events, int &eventCount, int eventAvail[12 * 31][5], const string &EVENTS_FILE);
+void mainMenu(vector<Event> &events, int &eventCount, int eventAvail[12 * 31][5], const string &EVENTS_FILE, const string &ORGANISER_FILE);
+void checkAvailability(vector<Event> &events, int &eventCount, int eventAvail[12 * 31][5], const string &EVENTS_FILE, const string &ORGANISER_FILE);
+void eventBooking(vector<Event> &events, int &eventCount, int eventAvail[12 * 31][5], const string &EVENTS_FILE, const string &ORGANISER_FILE);
 void searchEvents(vector<Event> &events, int eventCount);
 void deleteEvent(vector<Event> &events, int &eventCount, int eventAvail[12 * 31][5], const string &EVENTS_FILE);
-void saveOrganiser(const string &ORGANISER_FILE, const Event &newEvent);
+void saveOrganiser(vector<Event> &events, int eventCount, const string &ORGANISER_FILE);
 void loadOrganiserFromFile(vector<Event> &events, const string &ORGANISER_FILE);
+void updateEventStatus(vector<Event> &events, int eventCount, int eventAvail[12 * 31][5], const string &EVENTS_FILE, const string &ORGAINISER_FILE);
+void partiAttendance(vector<Event> &events, int eventCount);
+void manageComplaint(vector<Event> &events, int eventCount);
+void pressEnterToContinue();
 
-void displayFilteredEvents(vector<Event> &filteredEvents)
+void displaySearchedEvents(vector<Event> &filteredEvents)
 {
     if (filteredEvents.empty())
     {
@@ -141,7 +156,7 @@ void displayFilteredEvents(vector<Event> &filteredEvents)
         cout << left
              << setw(5) << i + 1
              << setw(15) << filteredEvents[i].eventType
-             << setw(15) << filteredEvents[i].id
+             << setw(15) << filteredEvents[i].eventId
              << setw(25) << filteredEvents[i].eventName
              << setw(15) << filteredEvents[i].date.toString()
              << setw(20) << filteredEvents[i].timeDuration
@@ -150,15 +165,7 @@ void displayFilteredEvents(vector<Event> &filteredEvents)
     }
 }
 
-void displayEvents(vector<Event> &events, int eventCount, int eventAvail[12 * 31][5], const string &EVENTS_FILE)
-{
-    if (eventCount == 0)
-    {
-        cout << "No events available.\n";
-        return;
-    }
-
-    // Show all events only once
+void displayEvent(vector<Event> &events, int eventCount){
     cout << left
          << setw(5) << "No"
          << setw(15) << "Event Type"
@@ -176,7 +183,7 @@ void displayEvents(vector<Event> &events, int eventCount, int eventAvail[12 * 31
         cout << left
              << setw(5) << i + 1
              << setw(15) << events[i].eventType
-             << setw(15) << events[i].id
+             << setw(15) << events[i].eventId
              << setw(25) << events[i].eventName
              << setw(15) << events[i].date.toString()
              << setw(20) << events[i].timeDuration
@@ -184,27 +191,52 @@ void displayEvents(vector<Event> &events, int eventCount, int eventAvail[12 * 31
              << setw(25) << events[i].eventDesc << endl;
     }
 
+}
+
+void eventMonitoring(vector<Event> &events, int eventCount, int eventAvail[12 * 31][5], const string &EVENTS_FILE, const string &ORGANISER_FILE, const string &COMPLAINTS_FILE)
+{
+    if (eventCount == 0)
+    {
+        cout << "\n[No events available]\n";
+        pressEnterToContinue();
+        mainMenu(events, eventCount, eventAvail, EVENTS_FILE, ORGANISER_FILE);
+    }
+
     // Main loop only for actions
     while (true)
     {
         int option;
-        cout << "\n[1] Search event\n[2] Delete event\n[3] Display all event list\n[4] Back to Main Menu\nSelect option: ";
+        cout << "\n----- Event Monitoring -----\n";
+        cout << "\n[1] Display all event list\n[2] Search event\n[3] Delete event\n[4] Update/Manage event status\n[5] Check/Manage Participants Attendance\n[6] Add/View Complaint\n[7] Generate Report\n[8] Back to Main Menu\nSelect option: ";
         cin >> option;
         cin.ignore(); // clear newline
 
         switch (option)
         {
         case 1:
-            searchEvents(events, eventCount);
+            displayEvent(events, eventCount);
+            //pressEnterToContinue();
             break;
         case 2:
-            deleteEvent(events, eventCount, eventAvail, EVENTS_FILE);
+            searchEvents(events, eventCount);
             break;
         case 3:
-            displayEvents(events, eventCount, eventAvail, EVENTS_FILE);
+            deleteEvent(events, eventCount, eventAvail, EVENTS_FILE);
             break;
         case 4:
-            mainMenu(events, eventCount, eventAvail, EVENTS_FILE);
+            updateEventStatus(events, eventCount, eventAvail, EVENTS_FILE, ORGANISER_FILE);
+            break;
+        case 5:
+            partiAttendance(events, eventCount);
+            break;
+        case 6: 
+            manageComplaint(events, eventCount, COMPLAINTS_FILE);
+            break;
+        case 7:
+            cout << "generate report";
+            break;
+        case 8: 
+            mainMenu(events, eventCount, eventAvail, EVENTS_FILE, ORGANISER_FILE,COMPLAINTS_FILE);
             break;
         default:
             cout << "Invalid input! Try again.\n";
@@ -212,6 +244,240 @@ void displayEvents(vector<Event> &events, int eventCount, int eventAvail[12 * 31
         }
     }
 }
+
+void updateEventStatus(vector<Event> &events, int eventCount, int eventAvail[12 * 31][5], const string &EVENTS_FILE, const string &ORGANISER_FILE, const string &COMPLAINTS_FILE) {
+    int updateStatus;
+    cout << "\n------ Update Event Status ------\n";
+    cout << "Enter event ID to update status or [55] to search event: ";
+    cin >> updateStatus;
+
+    if (updateStatus == 55) {
+        searchEvents(events, eventCount);
+        return; // after search, exit this function
+    }
+
+    bool found = false;
+    for (int i = 0; i < eventCount; i++) {
+        if (events[i].eventId == updateStatus) {  // make sure to use correct field name
+            int option;
+            do {
+                cout << "\n----- Update Status -----\n"
+                     << "[1] Ongoing\n"
+                     << "[2] Completed\n"
+                     << "[3] Cancelled\n"
+                     << "Select option: ";
+                cin >> option;
+
+                switch (option) {
+                    case 1:
+                        events[i].eventStatus = "Ongoing";
+                        break;
+                    case 2: 
+                        events[i].eventStatus = "Completed";
+                        break;
+                    case 3:
+                        events[i].eventStatus = "Cancelled";
+                        break;
+                    default:
+                        cout << "\nInvalid option. Please try again.\n";
+                }
+            } while (option < 1 || option > 3);
+
+            cout << "\n[Status Updated Successfully!]\n";
+            saveEvents(events, eventCount, EVENTS_FILE);
+            pressEnterToContinue();
+
+            eventMonitoring(events, eventCount, eventAvail, EVENTS_FILE, ORGANISER_FILE, COMPLAINTS_FILE);
+            found = true;
+            break;
+        }
+    }
+
+    if (!found) {
+        cout << "Event ID not found.\n";
+    }
+}
+
+
+void pressEnterToContinue(){
+    cout << "\n[Press Enter to continue...]";
+    cin.ignore();
+    cin.get();
+}
+
+void partiAttendance(vector<Event> &events, int eventCount) {
+    cout << "\n----- Participant Attendance Management ------\n";
+    cout << "[1] Check Participant Attendance\n";
+    cout << "[2] Update Participant Attendance\n";
+    cout << "Select option: ";
+    
+    int option;
+    cin >> option;
+    cin.ignore(); // clear newline left by cin
+
+    switch (option) {
+    case 1: {
+        string partiName;
+        cout << "\n----- Check Participant Attendance -----\n";
+        cout << "Enter participant name: ";
+        getline(cin, partiName);
+
+        bool found = false;
+        for (int i = 0; i < eventCount; i++) {
+            for (size_t j = 0; j < events[i].participants.size(); j++) { 
+                if (events[i].participants[j].partiName == partiName) {
+                    cout << "Participant " << partiName 
+                         << " found in Event: " << events[i].eventName 
+                         << " | Attendance: " 
+                         << (events[i].participants[j].attended ? "Present" : "Absent")
+                         << endl;
+                    found = true;
+                }
+            }
+        }
+
+        if (!found) {
+            cout << "Participant not found in any event.\n";
+        }
+        break;
+    }
+    case 2: {
+        string partiName;
+        cout << "\n----- Update Participant Attendance -----\n";
+        cout << "Enter participant name: ";
+        getline(cin, partiName);
+
+        bool updated = false;
+        for (int i = 0; i < eventCount; i++) {
+            for (size_t j = 0; j < events[i].participants.size(); j++) { 
+                if (events[i].participants[j].partiName == partiName) {
+                    cout << "Mark as present? (y/n): ";
+                    char ch;
+                    cin >> ch;
+                    events[i].participants[j].attended = (tolower(ch) == 'y');
+                    cout << "\n[Attendance updated]\n";
+                    updated = true;
+                }
+            }
+        }
+
+        if (!updated) {
+            cout << "Participant not found.\n";
+        }
+        break;
+    }
+    default:
+        cout << "Invalid option!\n";
+    }
+}
+
+
+void manageComplaint(vector<Event> &events, int eventCount, const string &COMPLAINTS_FILE) {
+    if (eventCount == 0) {
+        cout << "No events available to manage complaints.\n";
+        return;
+    }
+
+    int eventId;
+    cout << "\n------ Complaint Management ------\n";
+    cout << "Enter Event ID to manage complaints: ";
+    cin >> eventId;
+
+    // Find event
+    int eventIndex = -1;
+    for (int i = 0; i < eventCount; i++) {
+        if (events[i].eventId == eventId) {
+            eventIndex = i;
+            break;
+        }
+    }
+
+    if (eventIndex == -1) {
+        cout << "Event not found!\n";
+        return;
+    }
+
+    int choice;
+    do {
+        cout << "\nManaging complaints for Event: " << events[eventIndex].eventName << "\n";
+        cout << "[1] Add Complaint\n";
+        cout << "[2] View Complaints\n";
+        cout << "[3] Update Complaint Status\n";
+        cout << "[0] Back\n";
+        cout << "Select option: ";
+        cin >> choice;
+        cin.ignore(); // clear buffer
+
+        switch (choice) {
+            case 1: {
+                Complaint newComplaint;
+                newComplaint.complaintId = events[eventIndex].complaints.size() + 1;
+                cout << "Enter complaint description: ";
+                getline(cin, newComplaint.complDesc);
+                newComplaint.complStatus = "Pending";
+                events[eventIndex].complaints.push_back(newComplaint);
+                cout << "Complaint added successfully!\n";
+                saveComplaints(events, COMPLAINTS_FILE);
+                break;
+            }
+
+            case 2: {
+                loadComplaints(events, COMPLAINTS_FILE);
+                if (events[eventIndex].complaints.empty()) {
+                    cout << "No complaints for this event.\n";
+                } else {
+                    cout << "\n--- Complaints (" << events[eventIndex].complaints.size() << ") ---\n";
+                    for (auto &c : events[eventIndex].complaints) {
+                        cout << "ID: " << c.complaintId 
+                             << " | Description: " << c.complDesc
+                             << " | Status: " << c.complStatus << endl;
+                    }
+                }
+                break;
+            }
+
+            case 3: {
+                if (events[eventIndex].complaints.empty()) {
+                    cout << "No complaints to update.\n";
+                } else {
+                    int compId;
+                    cout << "Enter Complaint ID to update: ";
+                    cin >> compId;
+
+                    bool found = false;
+                    for (auto &c : events[eventIndex].complaints) {
+                        if (c.complaintId == compId) {
+                            found = true;
+                            int opt;
+                            cout << "Update Status:\n[1] Pending\n[2] In Progress\n[3] Solved\nSelect: ";
+                            cin >> opt;
+                            switch (opt) {
+                                case 1: c.complStatus = "Pending"; break;
+                                case 2: c.complStatus = "In Progress"; break;
+                                case 3: c.complStatus = "Solved"; break;
+                                default: cout << "Invalid option!\n"; continue;
+                            }
+                            cout << "Complaint status updated!\n";
+                            break;
+                        }
+                    }
+                    if (!found) {
+                        cout << "Complaint not found.\n";
+                    }
+                }
+                break;
+            }
+
+            case 0:
+                cout << "Returning to main menu...\n";
+                break;
+
+            default:
+                cout << "Invalid choice.\n";
+        }
+    } while (choice != 0);
+}
+
 
 void searchEvents(vector<Event> &events, int eventCount)
 {
@@ -254,13 +520,13 @@ void searchEvents(vector<Event> &events, int eventCount)
         if (choice == 1)
             match = (events[i].eventType == searchEventType);
         else if (choice == 2)
-            match = (events[i].id == stoi(keyword));
+            match = (events[i].eventId == stoi(keyword));
         else if (choice == 3)
-            match = (events[i].eventName.find(keyword) != string::npos);
+            match = (events[i].eventName.find(keyword));
         else if (choice == 4)
             match = (events[i].date.toString() == keyword);
         else if (choice == 5)
-            match = (events[i].venue.venue.find(keyword) != string::npos);
+            match = (events[i].venue.venue.find(keyword));
 
         if (match)
             filteredEvents.push_back(events[i]);
@@ -272,7 +538,8 @@ void searchEvents(vector<Event> &events, int eventCount)
     }
     else
     {
-        displayFilteredEvents(filteredEvents);
+        displaySearchedEvents(filteredEvents);
+        pressEnterToContinue();
     }
 }
 
@@ -335,7 +602,7 @@ void deleteEvent(vector<Event> &events, int &eventCount, int eventAvail[12 * 31]
         // Update IDs to be sequential
         for (int i = 0; i < eventCount; i++)
         {
-            events[i].id = i + 1;
+            events[i].eventId = i + 1;
         }
 
         cout << "Event deleted successfully.\n";
@@ -347,7 +614,7 @@ void deleteEvent(vector<Event> &events, int &eventCount, int eventAvail[12 * 31]
     }
 }
 
-void eventBooking(vector<Event> &events, int &eventCount, int eventAvail[12 * 31][5], const string &EVENTS_FILE)
+void eventBooking(vector<Event> &events, int &eventCount, int eventAvail[12 * 31][5],const string &EVENTS_FILE, const string &ORGANISER_FILE)
 {
     Event newEvent;
     char confirmation;
@@ -375,7 +642,7 @@ void eventBooking(vector<Event> &events, int &eventCount, int eventAvail[12 * 31
         // Date validation loop
         while (true)
         {
-            cout << "\nEnter date to check venue availability (yyyy-mm-dd): ";
+            cout << "\nEnter event date (yyyy-mm-dd): ";
             cin >> date;
 
             // Format check
@@ -652,41 +919,44 @@ void eventBooking(vector<Event> &events, int &eventCount, int eventAvail[12 * 31
         cout << "\n['y' - continue/ 'n' - re-enter all details]\nConfirm all details? (y/n): ";
         cin >> confirmation;
         confirmation = tolower(confirmation);
+
+        
         
     }while(confirmation != 'y');
 
-    newEvent.id = events.size() + 1;
+    newEvent.eventId = events.size() + 1;
+    newEvent.eventStatus = "Scheduled";
     events.push_back(newEvent);
     eventCount = events.size();
     cout << "\n[Booking successful!]\n";
+    
 
     saveEvents(events, eventCount, EVENTS_FILE);
+    saveOrganiser(events, eventCount, ORGANISER_FILE);
 
     char option;
     do
     {
-        cout << "Do you want to continue (y/n): ";
+        cout << "\n[1] Manage and View Event\n[2] Back To Main Menu\nSelect Option: ";
         cin >> option;
         option = tolower(option);
 
-        if (option == 'y')
+        if (option == 1)
         {
-            mainMenu(events, eventCount, eventAvail, EVENTS_FILE);
+            eventMonitoring(events, eventCount, eventAvail, EVENTS_FILE, ORGANISER_FILE);
             break;
-        }
-        else if (option == 'n')
+        }else if (option == 2)
         {
-            cout << "\n[Exiting program...]\n";
+            mainMenu(events, eventCount, eventAvail, EVENTS_FILE, ORGANISER_FILE);
             break;
-        }
-        else
+        }else
         {
-            cout << "\n[Invalid input! Please enter 'y' or 'n']\n";
+            cout << "\n[Invalid option! Please try again!]\n";
         }
     } while (true);
 }
 
-void checkAvailability(vector<Event> &events, int &eventCount, int eventAvail[12 * 31][5], const string &EVENTS_FILE)
+void checkAvailability(vector<Event> &events, int &eventCount, int eventAvail[12 * 31][5], const string &EVENTS_FILE, const string &ORGANISER_FILE, const string &COMPLAINTS_FILE)
 {
     cout << "\n------ Check Venue Availability ------\n";
     string date;
@@ -806,10 +1076,10 @@ void checkAvailability(vector<Event> &events, int &eventCount, int eventAvail[12
     case 1:
         return; // go back to main menu
     case 2:
-        eventBooking(events, eventCount, eventAvail, EVENTS_FILE);
+        eventBooking(events, eventCount, eventAvail, EVENTS_FILE, ORGANISER_FILE);
         break;
     case 3:
-        displayEvents(events, eventCount, eventAvail, EVENTS_FILE);
+        eventMonitoring(events, eventCount, eventAvail, EVENTS_FILE, ORGANISER_FILE, COMPLAINTS_FILE);
         break;
     case 0:
         cout << "\n[Exiting program...]\n";
@@ -817,7 +1087,7 @@ void checkAvailability(vector<Event> &events, int &eventCount, int eventAvail[12
         break;
     default:
         cout << "Invalid option! Please select again!\n";
-        checkAvailability(events, eventCount, eventAvail, EVENTS_FILE);
+        break;
     }
 }
 
@@ -833,7 +1103,8 @@ void saveEvents(vector<Event> &events, int eventCount, const string &EVENTS_FILE
 
     for (int i = 0; i < eventCount; i++)
     {
-        outEventFile << events[i].id << "|"
+        outEventFile << events[i].eventId << "|"
+                     << events[i].eventStatus << "|"
                      << events[i].eventType << "|"
                      << events[i].eventName << "|"
                      << events[i].date.toString() << "|"
@@ -852,23 +1123,84 @@ void saveEvents(vector<Event> &events, int eventCount, const string &EVENTS_FILE
     outEventFile.close();
 }
 
-
-
-
-void saveOrganiser(const string &ORGANISER_FILE, const Event &newEvent){
-    ofstream outOrgFile(ORGANISER_FILE, ios::app); // append mode
+void saveOrganiser(vector<Event> &events, int eventCount, const string &ORGANISER_FILE){
+    ofstream outOrgFile(ORGANISER_FILE);
     if (!outOrgFile)
     {
         cout << "Error saving organiser details\n";
         return;
     }
-
-    outOrgFile << newEvent.id << "|"
-               << newEvent.orgaName.orgaName << "|"
-               << newEvent.orgaPhoneNo.orgaPhoneNo << "|"
-               << newEvent.orgaEmail.orgaEmail << "\n";
+    for(int i = 0; i < eventCount; i++){
+        outOrgFile << events[i].eventId << "|"
+               << events[i].orgaName.orgaName << "|"
+               << events[i].orgaPhoneNo.orgaPhoneNo << "|"
+               << events[i].orgaEmail.orgaEmail << "\n";
+    }
+    
     
     outOrgFile.close();
+}
+
+// Save all complaints for all events
+void saveComplaints(const vector<Event>& events, const string& COMPLAINTS_FILE) {
+    ofstream outFile(COMPLAINTS_FILE);
+    if (!outFile) {
+        cout << "Error saving complaints\n";
+        return;
+    }
+    for (const auto& event : events) {
+        for (const auto& c : event.complaints) {
+            outFile << event.eventId << "|"
+                    << c.complaintId << "|"
+                    << c.complStatus << "|"
+                    << c.complType << "|"
+                    << c.reporterType << "|"
+                    << c.complDesc << "\n";
+        }
+    }
+    outFile.close();
+}
+
+// Load all complaints and assign to the correct event by eventId
+void loadComplaints(vector<Event>& events, const string& COMPLAINTS_FILE) {
+    ifstream inFile(COMPLAINTS_FILE);
+    if (!inFile) {
+        return; // No complaints file yet
+    }
+    string line;
+    while (getline(inFile, line)) {
+        if (line.empty()) continue;
+        stringstream ss(line);
+        string eventIdStr, complaintIdStr, status, type, reporter, desc;
+        if (!getline(ss, eventIdStr, '|')) continue;
+        if (!getline(ss, complaintIdStr, '|')) continue;
+        if (!getline(ss, status, '|')) continue;
+        if (!getline(ss, type, '|')) continue;
+        if (!getline(ss, reporter, '|')) continue;
+        getline(ss, desc);
+
+        try {
+            int eventId = stoi(eventIdStr);
+            int complaintId = stoi(complaintIdStr);
+            // Find the event by eventId
+            for (auto& event : events) {
+                if (event.eventId == eventId) {
+                    Complaint c;
+                    c.eventId = eventId;
+                    c.complaintId = complaintId;
+                    c.complStatus = status;
+                    c.complType = type;
+                    c.reporterType = reporter;
+                    c.complDesc = desc;
+                    event.complaints.push_back(c);
+                    break;
+                }
+            }
+        } catch (...) {
+            continue; // skip invalid lines
+        }
+    }
+    inFile.close();
 }
 
 void loadEventFromFile(vector<Event> &events, int &eventCount, int eventAvail[12 * 31][5], const string &EVENTS_FILE)
@@ -888,10 +1220,12 @@ void loadEventFromFile(vector<Event> &events, int &eventCount, int eventAvail[12
             continue;
 
         stringstream ss(line);
-        string idStr, eventTypeStr, eventNameStr, dateStr, timeStr, venueStr, equipmentStr, descStr, orgNameStr;
+        string idStr, eventStatusStr, eventTypeStr, eventNameStr, dateStr, timeStr, venueStr, equipmentStr, descStr, orgNameStr;
 
         // Get all fields separated by |
         if (!getline(ss, idStr, '|'))
+            continue;
+        if (!getline(ss, eventStatusStr, '|'))
             continue;
         if (!getline(ss, eventTypeStr, '|'))
             continue;
@@ -914,13 +1248,14 @@ void loadEventFromFile(vector<Event> &events, int &eventCount, int eventAvail[12
         // Parse ID with error handling
         try
         {
-            evt.id = stoi(idStr);
+            evt.eventId = stoi(idStr);
         }
         catch (...)
         {
             continue;
         }
 
+        evt.eventStatus = eventStatusStr;
         evt.eventType = eventTypeStr;
         evt.eventName = eventNameStr;
         evt.timeDuration = timeStr;
@@ -1057,7 +1392,7 @@ void loadOrganiserFromFile(vector<Event> &events, const string &ORGANISER_FILE){
             // Find the corresponding event and update organiser details
             for (int i = 0; i < events.size(); i++)
             {
-                if (events[i].id == eventId)
+                if (events[i].eventId == eventId)
                 {
                     events[i].orgaName.orgaName = orgName;
                     events[i].orgaPhoneNo.orgaPhoneNo = orgPhone;
@@ -1075,7 +1410,7 @@ void loadOrganiserFromFile(vector<Event> &events, const string &ORGANISER_FILE){
     inOrgFile.close();
 }
 
-void mainMenu(vector<Event> &events, int &eventCount, int eventAvail[12 * 31][5], const string &EVENTS_FILE)
+void mainMenu(vector<Event> &events, int &eventCount, int eventAvail[12 * 31][5], const string &EVENTS_FILE, const string &ORGANISER_FILE, const string &COMPLAINTS_FILE)
 {
     int option;
     do
@@ -1091,13 +1426,13 @@ void mainMenu(vector<Event> &events, int &eventCount, int eventAvail[12 * 31][5]
         switch (option)
         {
         case 1:
-            checkAvailability(events, eventCount, eventAvail, EVENTS_FILE);
+            checkAvailability(events, eventCount, eventAvail, EVENTS_FILE, ORGANISER_FILE);
             break;
         case 2:
-            eventBooking(events, eventCount, eventAvail, EVENTS_FILE);
+            eventBooking(events, eventCount, eventAvail, EVENTS_FILE, ORGANISER_FILE);
             break;
         case 3:
-            displayEvents(events, eventCount, eventAvail, EVENTS_FILE);
+            eventMonitoring(events, eventCount, eventAvail, EVENTS_FILE, ORGANISER_FILE, COMPLAINTS_FILE);
             break;
         case 0:
             cout << "\n[Exiting program...]\n";
@@ -1111,16 +1446,16 @@ void mainMenu(vector<Event> &events, int &eventCount, int eventAvail[12 * 31][5]
 int main()
 {
     vector<Event> events;
-    //vector<Participant> participants;
     vector<Complaint> complaints;
     int eventCount = 0;
     int eventAvail[12 * 31][5] = {0};
-    int complaintCount = 0; //TODO
     const string EVENTS_FILE = "events.txt";
     const string ORGANISER_FILE = "organiser.txt";
+    const string COMPLAINTS_FILE = "complaints.txt";
 
     loadEventFromFile(events, eventCount, eventAvail, EVENTS_FILE);
     loadOrganiserFromFile(events, ORGANISER_FILE);
-    mainMenu(events, eventCount, eventAvail, EVENTS_FILE);
+    loadComplaints(events, COMPLAINTS_FILE);
+    mainMenu(events, eventCount, eventAvail, EVENTS_FILE, ORGANISER_FILE, COMPLAINTS_FILE);
     return 0;
 }

@@ -1,5 +1,2 @@
-1|Seminar|sem1|2025-12-12|12:12 to 12:13|Hall 3|0,0,0,0,0,0,0|
-2|Seminar|sem3|2025-12-12|03:13 to 04:55|Hall 1|0,0,0,0,0,0,0|okok
-3|Talk|talk1|2025-12-13|03:22 to 03:33|Hall 1|0,0,0,0,0,0,0|dec1
-4|Seminar|sem88|2025-12-12|03:33 to 14:55|Hall 4|0,0,0,0,0,0,0|descdesc
-5|Seminar|asa|2025-12-12|02:22 to 03:55|Hall 5|50,50,50,50,50,50,50|a
+1|Completed|Seminar|soe|2025-12-12|00:00 to 00:56|Hall 1|0,0,0,0,0,0,0|ok|a
+2|Scheduled|Seminar|pl|2025-12-15|01:11 to 02:22|Hall 3|1,1,1,1,1,1,1|q|a

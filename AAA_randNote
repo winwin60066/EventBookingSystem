@@ -33,6 +33,9 @@ struct Event {
         Mark as (1) In Progress / (2) Resolved: 2
         [Status updated successfully!]
 18. monitoring - maybe like when i show all list of the event, i can do like only show complaint qty, so user know is it got complaint, if got then only go to see complaint
+19. edit menus for staff and customer
+20. add back function for accidentally access
+21. validations
 
 //text file 可能会要换format， 可能后面会需要加custname和description/remark之类的
 
