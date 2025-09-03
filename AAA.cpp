@@ -77,8 +77,6 @@ struct Organiser{
     string orgaEmail;
 };
 
-
-
 struct Participant{
     string partiName;
     bool attended;
@@ -116,19 +114,22 @@ struct Event
     vector<Complaint> complaints;  
 };
 
-// Function declarations
+// Function declarations - FIXED: Added missing declarations and corrected signatures
 void saveEvents(vector<Event> &events, int eventCount, const string &EVENTS_FILE);
 void loadEventFromFile(vector<Event> &events, int &eventCount, int eventAvail[12 * 31][5], const string &EVENTS_FILE);
-void mainMenu(vector<Event> &events, int &eventCount, int eventAvail[12 * 31][5], const string &EVENTS_FILE, const string &ORGANISER_FILE);
-void checkAvailability(vector<Event> &events, int &eventCount, int eventAvail[12 * 31][5], const string &EVENTS_FILE, const string &ORGANISER_FILE);
+void mainMenu(vector<Event> &events, int &eventCount, int eventAvail[12 * 31][5], const string &EVENTS_FILE, const string &ORGANISER_FILE, const string &COMPLAINTS_FILE);
+void checkAvailability(vector<Event> &events, int &eventCount, int eventAvail[12 * 31][5], const string &EVENTS_FILE, const string &ORGANISER_FILE, const string &COMPLAINTS_FILE);
 void eventBooking(vector<Event> &events, int &eventCount, int eventAvail[12 * 31][5], const string &EVENTS_FILE, const string &ORGANISER_FILE);
 void searchEvents(vector<Event> &events, int eventCount);
 void deleteEvent(vector<Event> &events, int &eventCount, int eventAvail[12 * 31][5], const string &EVENTS_FILE);
 void saveOrganiser(vector<Event> &events, int eventCount, const string &ORGANISER_FILE);
 void loadOrganiserFromFile(vector<Event> &events, const string &ORGANISER_FILE);
-void updateEventStatus(vector<Event> &events, int eventCount, int eventAvail[12 * 31][5], const string &EVENTS_FILE, const string &ORGAINISER_FILE);
+void updateEventStatus(vector<Event> &events, int eventCount, int eventAvail[12 * 31][5], const string &EVENTS_FILE, const string &ORGANISER_FILE, const string &COMPLAINTS_FILE);
 void partiAttendance(vector<Event> &events, int eventCount);
-void manageComplaint(vector<Event> &events, int eventCount);
+void manageComplaint(vector<Event> &events, int eventCount, const string &COMPLAINTS_FILE);
+void eventMonitoring(vector<Event> &events, int eventCount, int eventAvail[12 * 31][5], const string &EVENTS_FILE, const string &ORGANISER_FILE, const string &COMPLAINTS_FILE);
+void saveComplaints(const vector<Event>& events, const string& COMPLAINTS_FILE);
+void loadComplaints(vector<Event>& events, const string& COMPLAINTS_FILE);
 void pressEnterToContinue();
 
 void displaySearchedEvents(vector<Event> &filteredEvents)
@@ -151,7 +152,7 @@ void displaySearchedEvents(vector<Event> &filteredEvents)
 
     cout << string(125, '-') << endl;
 
-    for (int i = 0; i < filteredEvents.size(); i++)
+    for (size_t i = 0; i < filteredEvents.size(); i++)
     {
         cout << left
              << setw(5) << i + 1
@@ -190,7 +191,6 @@ void displayEvent(vector<Event> &events, int eventCount){
              << setw(20) << events[i].venue.venue
              << setw(25) << events[i].eventDesc << endl;
     }
-
 }
 
 void eventMonitoring(vector<Event> &events, int eventCount, int eventAvail[12 * 31][5], const string &EVENTS_FILE, const string &ORGANISER_FILE, const string &COMPLAINTS_FILE)
@@ -199,7 +199,7 @@ void eventMonitoring(vector<Event> &events, int eventCount, int eventAvail[12 * 
     {
         cout << "\n[No events available]\n";
         pressEnterToContinue();
-        mainMenu(events, eventCount, eventAvail, EVENTS_FILE, ORGANISER_FILE);
+        return; // FIXED: Changed from recursive call to return
     }
 
     // Main loop only for actions
@@ -215,7 +215,7 @@ void eventMonitoring(vector<Event> &events, int eventCount, int eventAvail[12 * 
         {
         case 1:
             displayEvent(events, eventCount);
-            //pressEnterToContinue();
+            pressEnterToContinue();
             break;
         case 2:
             searchEvents(events, eventCount);
@@ -224,7 +224,7 @@ void eventMonitoring(vector<Event> &events, int eventCount, int eventAvail[12 * 
             deleteEvent(events, eventCount, eventAvail, EVENTS_FILE);
             break;
         case 4:
-            updateEventStatus(events, eventCount, eventAvail, EVENTS_FILE, ORGANISER_FILE);
+            updateEventStatus(events, eventCount, eventAvail, EVENTS_FILE, ORGANISER_FILE, COMPLAINTS_FILE);
             break;
         case 5:
             partiAttendance(events, eventCount);
@@ -236,8 +236,7 @@ void eventMonitoring(vector<Event> &events, int eventCount, int eventAvail[12 * 
             cout << "generate report";
             break;
         case 8: 
-            mainMenu(events, eventCount, eventAvail, EVENTS_FILE, ORGANISER_FILE,COMPLAINTS_FILE);
-            break;
+            return; // FIXED: Changed from recursive call to return
         default:
             cout << "Invalid input! Try again.\n";
             break;
@@ -258,7 +257,7 @@ void updateEventStatus(vector<Event> &events, int eventCount, int eventAvail[12 
 
     bool found = false;
     for (int i = 0; i < eventCount; i++) {
-        if (events[i].eventId == updateStatus) {  // make sure to use correct field name
+        if (events[i].eventId == updateStatus) {
             int option;
             do {
                 cout << "\n----- Update Status -----\n"
@@ -286,8 +285,7 @@ void updateEventStatus(vector<Event> &events, int eventCount, int eventAvail[12 
             cout << "\n[Status Updated Successfully!]\n";
             saveEvents(events, eventCount, EVENTS_FILE);
             pressEnterToContinue();
-
-            eventMonitoring(events, eventCount, eventAvail, EVENTS_FILE, ORGANISER_FILE, COMPLAINTS_FILE);
+            // FIXED: Removed recursive call
             found = true;
             break;
         }
@@ -297,7 +295,6 @@ void updateEventStatus(vector<Event> &events, int eventCount, int eventAvail[12 
         cout << "Event ID not found.\n";
     }
 }
-
 
 void pressEnterToContinue(){
     cout << "\n[Press Enter to continue...]";
@@ -370,7 +367,6 @@ void partiAttendance(vector<Event> &events, int eventCount) {
         cout << "Invalid option!\n";
     }
 }
-
 
 void manageComplaint(vector<Event> &events, int eventCount, const string &COMPLAINTS_FILE) {
     if (eventCount == 0) {
@@ -469,7 +465,7 @@ void manageComplaint(vector<Event> &events, int eventCount, const string &COMPLA
             }
 
             case 0:
-                cout << "Returning to main menu...\n";
+                cout << "Returning to event monitoring...\n";
                 break;
 
             default:
@@ -477,7 +473,6 @@ void manageComplaint(vector<Event> &events, int eventCount, const string &COMPLA
         }
     } while (choice != 0);
 }
-
 
 void searchEvents(vector<Event> &events, int eventCount)
 {
@@ -519,14 +514,23 @@ void searchEvents(vector<Event> &events, int eventCount)
         bool match = false;
         if (choice == 1)
             match = (events[i].eventType == searchEventType);
-        else if (choice == 2)
-            match = (events[i].eventId == stoi(keyword));
+        else if (choice == 2) {
+            // FIXED: Added proper error handling for string to int conversion
+            try {
+                match = (events[i].eventId == stoi(keyword));
+            } catch (...) {
+                cout << "Invalid event ID format!\n";
+                return;
+            }
+        }
         else if (choice == 3)
-            match = (events[i].eventName.find(keyword));
+            // FIXED: Corrected search logic
+            match = (events[i].eventName.find(keyword) != string::npos);
         else if (choice == 4)
             match = (events[i].date.toString() == keyword);
         else if (choice == 5)
-            match = (events[i].venue.venue.find(keyword));
+            // FIXED: Corrected search logic
+            match = (events[i].venue.venue.find(keyword) != string::npos);
 
         if (match)
             filteredEvents.push_back(events[i]);
@@ -539,8 +543,8 @@ void searchEvents(vector<Event> &events, int eventCount)
     else
     {
         displaySearchedEvents(filteredEvents);
-        pressEnterToContinue();
     }
+    pressEnterToContinue();
 }
 
 void deleteEvent(vector<Event> &events, int &eventCount, int eventAvail[12 * 31][5], const string &EVENTS_FILE)
@@ -550,6 +554,8 @@ void deleteEvent(vector<Event> &events, int &eventCount, int eventAvail[12 * 31]
         cout << "No events available to delete.\n";
         return;
     }
+
+    displayEvent(events, eventCount); // Show events first
 
     int index;
     cout << "\nEnter the event number to delete (0 to cancel): ";
@@ -654,7 +660,7 @@ void eventBooking(vector<Event> &events, int &eventCount, int eventAvail[12 * 31
 
             // Digit check
             bool validDigits = true;
-            for (int i = 0; i < date.size(); i++)
+            for (size_t i = 0; i < date.size(); i++)
             {
                 if (i == 4 || i == 7)
                     continue; // skip dashes
@@ -882,7 +888,7 @@ void eventBooking(vector<Event> &events, int &eventCount, int eventAvail[12 * 31
             // Basic phone validation (xxx-xxxxxxx format)
             if(orgPhone.length() >= 11 && orgPhone[3] == '-'){
                 bool validPhone = true;
-                for(int i = 0; i < orgPhone.length(); i++){
+                for(size_t i = 0; i < orgPhone.length(); i++){
                     if(i == 3) continue; // skip dash
                     if(!isdigit(orgPhone[i])){
                         validPhone = false;
@@ -919,8 +925,6 @@ void eventBooking(vector<Event> &events, int &eventCount, int eventAvail[12 * 31
         cout << "\n['y' - continue/ 'n' - re-enter all details]\nConfirm all details? (y/n): ";
         cin >> confirmation;
         confirmation = tolower(confirmation);
-
-        
         
     }while(confirmation != 'y');
 
@@ -941,14 +945,12 @@ void eventBooking(vector<Event> &events, int &eventCount, int eventAvail[12 * 31
         cin >> option;
         option = tolower(option);
 
-        if (option == 1)
+        if (option == '1') // FIXED: Compare with character not integer
         {
-            eventMonitoring(events, eventCount, eventAvail, EVENTS_FILE, ORGANISER_FILE);
-            break;
-        }else if (option == 2)
+            return; // FIXED: Let caller handle navigation
+        }else if (option == '2')
         {
-            mainMenu(events, eventCount, eventAvail, EVENTS_FILE, ORGANISER_FILE);
-            break;
+            return; // FIXED: Let caller handle navigation  
         }else
         {
             cout << "\n[Invalid option! Please try again!]\n";
@@ -983,7 +985,7 @@ void checkAvailability(vector<Event> &events, int &eventCount, int eventAvail[12
 
         // Check that all other characters are digits
         bool validDigits = true;
-        for (int i = 0; i < date.size(); i++)
+        for (size_t i = 0; i < date.size(); i++)
         {
             if (i == 4 || i == 7)
                 continue; // skip dashes
@@ -1136,7 +1138,6 @@ void saveOrganiser(vector<Event> &events, int eventCount, const string &ORGANISE
                << events[i].orgaPhoneNo.orgaPhoneNo << "|"
                << events[i].orgaEmail.orgaEmail << "\n";
     }
-    
     
     outOrgFile.close();
 }
@@ -1390,7 +1391,7 @@ void loadOrganiserFromFile(vector<Event> &events, const string &ORGANISER_FILE){
             int eventId = stoi(idStr);
             
             // Find the corresponding event and update organiser details
-            for (int i = 0; i < events.size(); i++)
+            for (size_t i = 0; i < events.size(); i++)
             {
                 if (events[i].eventId == eventId)
                 {
@@ -1426,7 +1427,7 @@ void mainMenu(vector<Event> &events, int &eventCount, int eventAvail[12 * 31][5]
         switch (option)
         {
         case 1:
-            checkAvailability(events, eventCount, eventAvail, EVENTS_FILE, ORGANISER_FILE);
+            checkAvailability(events, eventCount, eventAvail, EVENTS_FILE, ORGANISER_FILE, COMPLAINTS_FILE);
             break;
         case 2:
             eventBooking(events, eventCount, eventAvail, EVENTS_FILE, ORGANISER_FILE);
