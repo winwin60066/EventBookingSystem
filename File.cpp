@@ -39,6 +39,23 @@ void saveEvents(vector<Event> &events, int eventCount, const string &EVENTS_FILE
     outEventFile.close();
 }
 
+//save user
+void saveUsers(const vector<User>& users, const string& filename) {
+    ofstream outFile(filename);
+    if (!outFile) {
+        cout << "Error opening user file for writing.\n";
+        return;
+    }
+    for (const auto& user : users) {
+        outFile << user.name << "|" << user.password << "|";
+        for (size_t i = 0; i < user.reservationID.size(); ++i) {
+            outFile << user.reservationID[i];
+            if (i < user.reservationID.size() - 1) outFile << ",";
+        }
+        outFile << "\n";
+    }
+    outFile.close();
+}
 
 //loadEventFromFile
 void loadEventFromFile(vector<Event> &events, int &eventCount, int eventAvail[12 * 31][5], const string &EVENTS_FILE)

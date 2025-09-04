@@ -3,62 +3,16 @@
 #include <iomanip>
 #include <sstream>
 #include <fstream>
+#include <algorithm>
 using namespace std;
 
+void displayEvent(vector<Event> &events, int eventCount);
+void pressEnterToContinue();
+void displaySearchedEvents(vector<Event> &filteredEvents);
+void saveEvents(vector<Event> &events, int eventCount, const string &filename);
+void manageComplaint(vector<Event> &events, int eventCount, const string &COMPLAINTS_FILE);
+void pressEnter();
 
-/*
-//eventMonitoring
-void eventMonitoring(vector<Event> &events, int eventCount, int eventAvail[12 * 31][5], const string &EVENTS_FILE, const string &ORGANISER_FILE, const string &COMPLAINTS_FILE)
-{
-    if (eventCount == 0)
-    {
-        cout << "\n[No events available]\n";
-        pressEnterToContinue();
-        return; // FIXED: Changed from recursive call to return
-    }
-
-    // Main loop only for actions
-    while (true)
-    {
-        int option;
-        cout << "\n----- Event Monitoring -----\n";
-        cout << "\n[1] Display all event list\n[2] Search event\n[3] Delete event\n[4] Update/Manage event status\n[5] Check/Manage Participants Attendance\n[6] Add/View Complaint\n[7] Generate Report\n[8] Back to Main Menu\nSelect option: ";
-        cin >> option;
-        cin.ignore(); // clear newline
-
-        switch (option)
-        {
-        case 1:
-            displayEvent(events, eventCount);
-            pressEnterToContinue();
-            break;
-        case 2:
-            searchEvents(events, eventCount);
-            break;
-        case 3:
-            deleteEvent(events, eventCount, eventAvail, EVENTS_FILE);
-            break;
-        case 4:
-            updateEventStatus(events, eventCount, eventAvail, EVENTS_FILE, ORGANISER_FILE, COMPLAINTS_FILE);
-            break;
-        case 5:
-            partiAttendance(events, eventCount);
-            break;
-        case 6: 
-            manageComplaint(events, eventCount, COMPLAINTS_FILE);
-            break;
-        case 7:
-            cout << "generate report";
-            break;
-        case 8: 
-            return; // FIXED: Changed from recursive call to return
-        default:
-            cout << "Invalid input! Try again.\n";
-            break;
-        }
-    }
-}
-*/
 
 //searchEvents
 void searchEvents(vector<Event> &events, int eventCount)
@@ -72,37 +26,69 @@ void searchEvents(vector<Event> &events, int eventCount)
     cin >> choice;
     cin.ignore(); // clear newline
 
-    string keyword, searchEventType;
+    string keyword, searchEventType, otherType;
 
     if (choice == 1)
     {
         int option;
-        cout << "[1] Seminar\n[2] Talk\nSelect event type: ";
+        cout << "[1] Seminar\n[2] Talk\n[3] Conference\n[4] Other\nSelect event type: ";
         cin >> option;
         cin.ignore();
         if (option == 1)
             searchEventType = "Seminar";
         else if (option == 2)
             searchEventType = "Talk";
+        else if (option == 3)
+            searchEventType = "Conference";
+        else if (option == 4)
+        {
+            cout << "Enter other type: ";
+            getline(cin, otherType);
+            searchEventType = otherType;
+        }
         else
         {
             cout << "Invalid option!\n";
             return;
         }
     }
-    else
+    else if (choice >= 2 && choice <= 5)
     {
         cout << "Enter keyword: ";
         getline(cin, keyword);
     }
+    else
+    {
+        cout << "Invalid option!\n";
+        return;
+    }
+
+    // Helper function for case-insensitive comparison
+    auto caseInsensitiveFind = [](const string& haystack, const string& needle) {
+        if (needle.empty()) return false;
+        
+        string haystackLower = haystack;
+        string needleLower = needle;
+        
+        // Convert both to lowercase
+        transform(haystackLower.begin(), haystackLower.end(), haystackLower.begin(), ::tolower);
+        transform(needleLower.begin(), needleLower.end(), needleLower.begin(), ::tolower);
+        
+        return haystackLower.find(needleLower) != string::npos;
+    };
 
     for (int i = 0; i < eventCount; i++)
     {
         bool match = false;
+        
         if (choice == 1)
-            match = (events[i].eventType == searchEventType);
-        else if (choice == 2) {
-            // FIXED: Added proper error handling for string to int conversion
+        {
+            // Case-insensitive event type comparison
+            match = caseInsensitiveFind(events[i].eventType, searchEventType);
+        }
+        else if (choice == 2)
+        {
+            // Event ID search (exact match)
             try {
                 match = (events[i].eventId == stoi(keyword));
             } catch (...) {
@@ -111,13 +97,20 @@ void searchEvents(vector<Event> &events, int eventCount)
             }
         }
         else if (choice == 3)
-            // FIXED: Corrected search logic
-            match = (events[i].eventName.find(keyword) != string::npos);
+        {
+            // Case-insensitive event name search
+            match = caseInsensitiveFind(events[i].eventName, keyword);
+        }
         else if (choice == 4)
+        {
+            // Date search (exact match, assuming date format is consistent)
             match = (events[i].date.toString() == keyword);
+        }
         else if (choice == 5)
-            // FIXED: Corrected search logic
-            match = (events[i].venue.venue.find(keyword) != string::npos);
+        {
+            // Case-insensitive venue search
+            match = caseInsensitiveFind(events[i].venue.venue, keyword);
+        }
 
         if (match)
             filteredEvents.push_back(events[i]);
@@ -131,9 +124,8 @@ void searchEvents(vector<Event> &events, int eventCount)
     {
         displaySearchedEvents(filteredEvents);
     }
-    pressEnterToContinue();
+    pressEnter();
 }
-
 
 //deleteEvent
 void deleteEvent(vector<Event> &events, int &eventCount, int eventAvail[12 * 31][5], const string &EVENTS_FILE)
@@ -332,7 +324,6 @@ void partiAttendance(vector<Event> &events, int eventCount) {
 }
 
 
-//TODO: show menu option
 Screen monitoringScreen(User& currentUser, vector<User>& users, vector<Event>& events, int& eventCount, int eventAvail[12*31][5], const string& EVENTS_FILE, const string& COMPLAINTS_FILE){
     system("cls");
     int choice;

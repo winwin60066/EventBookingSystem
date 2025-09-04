@@ -92,6 +92,7 @@ struct User {
 	string name;
 	string password;
 	vector<int> reservationID;
+    vector<int> owned;
 };
 
 struct Event {
@@ -157,6 +158,37 @@ void searchEvents(vector<Event>& events, int eventCount);
 
 Screen menu();
 
+void displayEvent(vector<Event> &events, int eventCount);
+void pressEnterToContinue();
+void displaySearchedEvents(vector<Event> &filteredEvents);
+void saveEvents(vector<Event> &events, int eventCount, const string &filename);
+void manageComplaint(vector<Event> &events, int eventCount, const string &COMPLAINTS_FILE);
+void pressEnter();
+// Add these to enum.h
+Screen loginScreen(User& currentUser, vector<User>& users);
+Screen bookingScreen(vector<Event>& events, int& eventCount, int eventAvail[12*31][5], 
+                    const string& EVENTS_FILE, const string& COMPLAINTS_FILE, Equipment& equipment);
+Screen monitoringScreen(User& currentUser, vector<User>& users, vector<Event>& events, 
+                       int& eventCount, int eventAvail[12*31][5], 
+                       const string& EVENTS_FILE, const string& COMPLAINTS_FILE);
+Screen mainMenu();
+Screen exiting();
+
+vector<Venue> loadVenues();
+vector<User> loadUsers(const vector<Event>& events);
+vector<User> loadEvents(vector<Event>& events, int& eventCount, int eventAvail[12*31][5], const string& filename);
+
+
+// Add these to your enum.h or a separate header file
+Screen loginScreen(User& currentUser, vector<User>& users);
+Screen bookingScreen(vector<Event>& events, int& eventCount, int eventAvail[12*31][5], 
+                    const string& EVENTS_FILE, const string& COMPLAINTS_FILE, Equipment& equipment);
+Screen monitoringScreen(User& currentUser, vector<User>& users, vector<Event>& events, 
+                       int& eventCount, int eventAvail[12*31][5], 
+                       const string& EVENTS_FILE, const string& COMPLAINTS_FILE);
+Screen mainMenu();
+Screen exiting();
+
 
 // main menu
 void mainMenu(vector<Event>&, int&, int[12*31][5],
@@ -182,7 +214,9 @@ void loadComplaints(vector<Event>&, const string&);
 
 // file io
 void saveEvents(vector<Event>&, int, const string&);
-void loadEventFromFile(vector<Event>&, int&, int[12*31][5], const string&);
+void saveUsers(const vector<User>& users, const string& filename)
+
+
 void saveOrganiser(vector<Event>&, int, const string&);
 void loadOrganiserFromFile(vector<Event>&, const string&);
 
