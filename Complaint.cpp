@@ -65,7 +65,7 @@ void manageComplaint(vector<Event> &events, int eventCount) {
             }
 
             case 2: {
-                loadComplaints(events);
+                //loadComplaints(events);
                 if (events[eventIndex].complaints.empty()) {
                     cout << "No complaints for this event.\n";
                 } else {
@@ -78,6 +78,7 @@ void manageComplaint(vector<Event> &events, int eventCount) {
                              << " | Status: " << c.complStatus << endl;
                     }
                 }
+                
                 break;
             }
 
@@ -124,6 +125,7 @@ void manageComplaint(vector<Event> &events, int eventCount) {
     } while (choice != 0);
 }
 
+
 //saveComplaints
 void saveComplaints(const vector<Event>& events) {
     ofstream outFile(COMPLAINTS_FILE);
@@ -146,6 +148,10 @@ void saveComplaints(const vector<Event>& events) {
 
 //loadComplaints
 void loadComplaints(vector<Event>& events) {
+    for (auto& event : events) {
+        event.complaints.clear();
+    }
+
     ifstream inFile(COMPLAINTS_FILE);
     if (!inFile) {
         return; // No complaints file yet

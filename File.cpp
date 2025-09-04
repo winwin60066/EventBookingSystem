@@ -19,6 +19,8 @@ void saveEvents(vector<Event> &events, int eventCount) {
 
     for (int i = 0; i < eventCount; i++) {
         outEventFile << events[i].eventId << "|"
+                    //total participant
+                    //attended participant
                      << events[i].eventStatus << "|"
                      << events[i].eventType << "|"
                      << events[i].eventName << "|"

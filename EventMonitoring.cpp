@@ -186,6 +186,15 @@ void partiAttendance(vector<Event>& events, int eventCount) {
     }
 }
 
+//attended participant number
+int countAttended(const Event& event) {
+    int partiAttCount = 0;
+    for (const auto& p : event.participants) {
+        if (p.attended) partiAttCount++;
+    }
+    return partiAttCount;
+}
+
 //monitoringScreen
 Screen monitoringScreen(User& currentUser, vector<User>& users, vector<Event>& events, int& eventCount, int eventAvail[12*31][5]) {
     system("cls");
