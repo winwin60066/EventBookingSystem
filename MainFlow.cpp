@@ -5,108 +5,118 @@
 #include <unordered_map>
 #include <sstream>
 #include <vector>
-#include <algorithm> // for transform
+#include <algorithm> 
+#include <iomanip>
 
 #define EVENTS_FILE "events.txt"
 #define COMPLAINTS_FILE "complaints.txt"
 #define VENUE_FILE "Venues.txt"
 #define USER_FILE "Users.txt"
+#define ORGANISER_FILE "organiser.txt"
 using namespace std;
 
-// Forward declarations for all screen functions
+// Forward declarations
 Screen loginScreen(User& currentUser, vector<User>& users);
-Screen bookingScreen(vector<Event>& events, int& eventCount, int eventAvail[12*31][5], 
-                    const string& EVENTS_FILE, const string& COMPLAINTS_FILE, Equipment& equipment);
-Screen monitoringScreen(User& currentUser, vector<User>& users, vector<Event>& events, int& eventCount, int eventAvail[12*31][5], const string& EVENTS_FILE, const string& COMPLAINTS_FILE);
-Screen mainMenu();
-Screen exiting();
+Screen bookingScreen(vector<Event>& events, int& eventCount, int eventAvail[12*31][5], Equipment& equipment, User& currentUser, vector<User>& users);
+Screen monitoringScreen(User& currentUser, vector<User>& users, vector<Event>& events, int& eventCount, int eventAvail[12*31][5]);
+Screen mainMenuScreen(vector<Event>& events, int& eventCount, int eventAvail[12*31][5]);
 
-// Loading functions declarations (fixed signatures)
-vector<User> loadEvents(vector<Event>& events, int& eventCount, int eventAvail[12*31][5], const string& filename);
-vector<User> loadUsers(vector<User>& users, const string& filename, const vector<Event>& events);
-vector<User> loadVenues(vector<Venue>& venues, const string& filename);
+// Loading functions
+void loadEvents(vector<Event>& events, int& eventCount, int eventAvail[12*31][5]);
+vector<User> loadUsers(const vector<Event>& events);
+vector<Venue> loadVenues();
 
-int main(){
+int main() {
     Screen currentScreen = LoginRegister;
     vector<Event> events;
     vector<Venue> venues;
     vector<User> users;
     
-    // Initialize equipment
-    Equipment equipment = {0, 0, 0, 0, 0, 0, 0}; // Initialize all to 0
+    Equipment equipment = {0, 0, 0, 0, 0, 0, 0};
 
-    // Initialize event availability array
     int eventAvail[12*31][5] = {0};
     int eventCount = 0;
 
-    // Load data from files
-    loadEvents(events, eventCount, eventAvail, EVENTS_FILE);
-    venues = loadVenues(); // This function returns a vector
-    users = loadUsers(events); // This function returns a vector and takes events parameter
+    // Load data
+    loadEvents(events, eventCount, eventAvail);
+    loadComplaints(events);
+    venues = loadVenues();
+    users = loadUsers(events);
 
     User currentUser;
 
-    while(currentScreen != exiting){
-        switch(currentScreen){
-            case LoginRegister:{
+    while (currentScreen != exiting) {
+        switch (currentScreen) {
+            case LoginRegister: {
                 currentScreen = loginScreen(currentUser, users);
                 break;
             }
-            case EventBooking:{
-                currentScreen = bookingScreen(events, eventCount, eventAvail, EVENTS_FILE, COMPLAINTS_FILE, equipment);
+            case EventBooking: {
+                if (currentUser.name.empty()) {
+                    cout << "Error: No user logged in. Returning to login.\n";
+                    currentScreen = LoginRegister;
+                    break;
+                }
+                currentScreen = bookingScreen(events, eventCount, eventAvail, equipment, currentUser, users);
                 break;
             } 
-            case EventMonitoring:
-            {
-                currentScreen = monitoringScreen(currentUser, users, events, eventCount, eventAvail, EVENTS_FILE, COMPLAINTS_FILE);
+            case EventMonitoring: {
+                if (currentUser.name.empty()) {
+                    cout << "Error: No user logged in. Returning to login.\n";
+                    currentScreen = LoginRegister;
+                    break;
+                }
+                currentScreen = monitoringScreen(currentUser, users, events, eventCount, eventAvail);
                 break;
             } 
             case MainMenu: {
-                currentScreen = mainMenu();
+                currentScreen = mainMenuScreen(events, eventCount, eventAvail);
                 if (currentScreen == LoginRegister) {
-                    currentUser = User{}; // Reset user if logging out
+                    currentUser = User{};
                 }
                 break;
             }
+            case home: { // Explicit transition from home to MainMenu
+                currentScreen = MainMenu;
+                break;
+            }
             default: {
-                cout << "Invalid screen state! Returning to login.\n";
-                currentScreen = LoginRegister;
+                cout << "Invalid screen. Returning to main menu.\n";
+                currentScreen = MainMenu;
                 break;
             }
         }
     }
 
-    // Save data before exiting
-    saveEvents(events, eventCount, EVENTS_FILE);
-    saveUsers(users, USER_FILE);
-    
-    cout << "Program exited successfully.\n";
+    // Save all before exit
+    saveEvents(events, eventCount);
+    saveUsers(users);
+    saveComplaints(events);
+    saveOrganiser(events, eventCount);
+
+    // Print the exit message here (always executed on exit)
+    cout << "Exiting program...\n";
+
     return 0;
 }
 
-// Implementation of loadEvents (renamed from loadEventFromFile to match declaration)
-vector<User> loadEvents(vector<Event>& events, int& eventCount, int eventAvail[12 * 31][5], const string& filename)
-{
-    vector<User> users;
-    ifstream inEventFile(filename);
-    if (!inEventFile)
-    {
-        return; // no file yet
+//loadEvents (void)
+void loadEvents(vector<Event>& events, int& eventCount, int eventAvail[12*31][5]) {
+    ifstream inEventFile(EVENTS_FILE);
+    if (!inEventFile) {
+        cout << "Error: Could not open event file '" << EVENTS_FILE << "' for reading.\n";
+        return;
     }
 
     string line;
     eventCount = 0;
-    events.clear(); // Clear existing events
 
-    while (getline(inEventFile, line))
-    {
-        if (line.empty())
-            continue;
+    while (getline(inEventFile, line)) {
+        if (line.empty()) continue;
 
         stringstream ss(line);
-        string idStr, eventStatusStr, eventTypeStr, eventNameStr, dateStr, timeStr, venueStr, equipmentStr, descStr, orgNameStr;
+        string idStr, eventStatusStr, eventTypeStr, eventNameStr, dateStr, timeStr, venueStr, entryFeeStr, equipmentStr, descStr, orgNameStr;
 
-        // Get all fields separated by |
         if (!getline(ss, idStr, '|')) continue;
         if (!getline(ss, eventStatusStr, '|')) continue;
         if (!getline(ss, eventTypeStr, '|')) continue;
@@ -114,135 +124,69 @@ vector<User> loadEvents(vector<Event>& events, int& eventCount, int eventAvail[1
         if (!getline(ss, dateStr, '|')) continue;
         if (!getline(ss, timeStr, '|')) continue;
         if (!getline(ss, venueStr, '|')) continue;
+        if (!getline(ss, entryFeeStr, '|')) continue;
         if (!getline(ss, equipmentStr, '|')) continue;
         if (!getline(ss, descStr, '|')) continue;
         getline(ss, orgNameStr);
 
         Event evt;
-
-        // Parse ID with error handling
-        try
-        {
+        try {
             evt.eventId = stoi(idStr);
-        }
-        catch (...)
-        {
-            continue;
-        }
-
-        evt.eventStatus = eventStatusStr;
-        evt.eventType = eventTypeStr;
-        evt.eventName = eventNameStr;
-        evt.timeDuration = timeStr;
-        evt.venue.venue = venueStr;
-        evt.eventDesc = descStr;
-        evt.orgaName.orgaName = orgNameStr;
-
-        // Parse date yyyy-mm-dd with error handling
-        try
-        {
-            if (dateStr.length() >= 10)
-            {
+            evt.eventStatus = eventStatusStr;
+            evt.eventType = eventTypeStr;
+            evt.eventName = eventNameStr;
+            // Parse date
+            if (dateStr.length() == 10 && dateStr[4] == '-' && dateStr[7] == '-') {
                 int year = stoi(dateStr.substr(0, 4));
                 int month = stoi(dateStr.substr(5, 2));
                 int day = stoi(dateStr.substr(8, 2));
-                evt.date = {day, month, year};
+                int monthDays[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+                if ((year % 4 == 0 && year % 100 != 0) || (year % 400 == 0)) monthDays[1] = 29;
+                if (month >= 1 && month <= 12 && day >= 1 && day <= monthDays[month - 1]) {
+                    evt.date = {day, month, year};
+                } else continue;
+            } else continue;
+            evt.timeDuration = timeStr;
+            evt.venue.venue = venueStr;
+            evt.entryFee = stod(entryFeeStr);
+            // Parse equipment (assume comma-separated)
+            stringstream equipSS(equipmentStr);
+            string token;
+            getline(equipSS, token, ','); evt.equipments.chairs = stoi(token);
+            getline(equipSS, token, ','); evt.equipments.tables = stoi(token);
+            getline(equipSS, token, ','); evt.equipments.booths = stoi(token);
+            getline(equipSS, token, ','); evt.equipments.projectors = stoi(token);
+            getline(equipSS, token, ','); evt.equipments.bins = stoi(token);
+            getline(equipSS, token, ','); evt.equipments.helpers = stoi(token);
+            getline(equipSS, token, ','); evt.equipments.tents = stoi(token);
+            evt.eventDesc = descStr;
+            evt.organiser.orgaName = orgNameStr; // Adjust if more fields
+
+            // Mark availability
+            int dayIndex = (evt.date.month - 1) * 31 + (evt.date.day - 1);
+            string venueStrLocal = venueStr;
+            if (venueStrLocal.size() >= 6 && venueStrLocal.substr(0, 4) == "Hall") {
+                int hall = stoi(venueStrLocal.substr(5)) - 1;
+                if (hall >= 0 && hall < 5) {
+                    eventAvail[dayIndex][hall] = 1;
+                }
             }
-            else
-            {
-                continue;
-            }
-        }
-        catch (...)
-        {
+
+            events.push_back(evt);
+        } catch (...) {
             continue;
         }
-
-        try
-        {
-            stringstream es(equipmentStr);
-            string token;
-            vector<int> eq;
-
-            while (getline(es, token, ','))
-            {
-                if (!token.empty())
-                {
-                    eq.push_back(stoi(token));
-                }
-                else
-                {
-                    eq.push_back(0);
-                }
-            }
-
-            // Ensure we have exactly 7 equipment values
-            while (eq.size() < 7)
-            {
-                eq.push_back(0);
-            }
-
-            if (eq.size() >= 7)
-            {
-                evt.equipments.chairs = eq[0];
-                evt.equipments.tables = eq[1];
-                evt.equipments.booths = eq[2];
-                evt.equipments.projectors = eq[3];
-                evt.equipments.bins = eq[4];
-                evt.equipments.helpers = eq[5];
-                evt.equipments.tents = eq[6];
-            }
-        }
-        catch (...)
-        {
-            // If equipment parsing fails, set all to 0
-            evt.equipments.chairs = 0;
-            evt.equipments.tables = 0;
-            evt.equipments.booths = 0;
-            evt.equipments.projectors = 0;
-            evt.equipments.bins = 0;
-            evt.equipments.helpers = 0;
-            evt.equipments.tents = 0;
-        }
-
-        // Mark availability with error handling
-        try
-        {
-            int dayIndex = (evt.date.month - 1) * 31 + (evt.date.day - 1);
-            if (dayIndex >= 0 && dayIndex < 12 * 31)
-            {
-                if (venueStr.size() >= 6 && venueStr.substr(0, 4) == "Hall")
-                {
-                    int hall = stoi(venueStr.substr(5)) - 1; // "Hall 1" -> get "1"
-                    if (hall >= 0 && hall < 5)
-                    {
-                        eventAvail[dayIndex][hall] = 1;
-                    }
-                }
-            }
-        }
-        catch (...)
-        {
-            // Skip availability marking if it fails
-        }
-
-        events.push_back(evt);
     }
-
     eventCount = events.size();
     inEventFile.close();
 }
 
-// Implementation of loadVenues (returns vector<Venue>)
+//loadVenues
 vector<Venue> loadVenues() {
     vector<Venue> venues;
     ifstream input(VENUE_FILE);
-
     if (!input) {
-        // Return default venues if file doesn't exist
-        venues.push_back(Venue{"Hall 1", "Chairs, Tables, Projectors", "Large", "Main hall with capacity for 200 people"});
-        venues.push_back(Venue{"Hall 2", "Chairs, Tables", "Medium", "Conference room for 50 people"});
-        venues.push_back(Venue{"Hall 3", "Chairs, Booths", "Small", "Meeting room for 20 people"});
+        cout << "Warning: Could not open venue file '" << VENUE_FILE << "'.\n";
         return venues;
     }
 
@@ -253,14 +197,13 @@ vector<Venue> loadVenues() {
         stringstream ss(line);
         string name, avaEquipment, size, desc;
         vector<Date> datesBooked;
-        double price;
+        double price = 0.0;
 
         if (!getline(ss, name, '|')) continue;
         if (!getline(ss, avaEquipment, '|')) continue;
         if (!getline(ss, size, '|')) continue;
         if (!getline(ss, desc, '|')) continue;
         
-        // Read dates (simplified parsing)
         string datesStr;
         if (getline(ss, datesStr, '|')) {
             stringstream datesStream(datesStr);
@@ -272,38 +215,32 @@ vector<Venue> loadVenues() {
                         int month = stoi(dateToken.substr(5, 2));
                         int day = stoi(dateToken.substr(8, 2));
                         datesBooked.push_back({day, month, year});
-                    } catch (...) {
-                        // Skip invalid dates
-                    }
+                    } catch (...) {}
                 }
             }
         }
 
-        // Read price
         string priceStr;
         if (getline(ss, priceStr)) {
             try {
                 price = stod(priceStr);
-            } catch (...) {
-                price = 0.0;
-            }
-        } else {
-            price = 0.0;
+            } catch (...) {}
         }
 
         venues.push_back(Venue{name, avaEquipment, size, desc, datesBooked, price});
     }
-
+    input.close();
     return venues;
 }
 
-// Implementation of loadUsers (returns vector<User>)
+//loadUsers
 vector<User> loadUsers(const vector<Event>& events) {
     vector<User> users;
     ifstream input(USER_FILE);
 
     if (!input) {
-        return users; // Return empty vector if file doesn't exist
+        cout << "Warning: Could not open user file '" << USER_FILE << "'.\n";
+        return users;
     }
 
     string line;
@@ -318,7 +255,6 @@ vector<User> loadUsers(const vector<Event>& events) {
         if (!getline(ss, name, '|')) continue;
         if (!getline(ss, password, '|')) continue;
         
-        // Read reservations
         string resStr;
         if (getline(ss, resStr, '|')) {
             stringstream resStream(resStr);
@@ -326,13 +262,10 @@ vector<User> loadUsers(const vector<Event>& events) {
             while (getline(resStream, token, ',')) {
                 try {
                     reservation.push_back(stoi(token));
-                } catch (...) {
-                    // Skip invalid IDs
-                }
+                } catch (...) {}
             }
         }
 
-        // Read owned events
         string ownStr;
         if (getline(ss, ownStr)) {
             stringstream ownStream(ownStr);
@@ -340,14 +273,174 @@ vector<User> loadUsers(const vector<Event>& events) {
             while (getline(ownStream, token, ',')) {
                 try {
                     owned.push_back(stoi(token));
-                } catch (...) {
-                    // Skip invalid IDs
-                }
+                } catch (...) {}
             }
         }
 
         users.push_back(User{name, password, reservation, owned});
     }
-
+    input.close();
     return users;
+}
+/*
+//mainMenu implementation
+Screen mainMenu() {
+    system("cls");
+    cout << "\n------ Main Menu ------\n";
+    printAll({"Check venue availability", "Event booking", "Manage Events", "Exit"});
+    int option;
+    cin >> option;
+    cin.ignore();
+
+    switch (option) {
+        case 1:
+            cout << "Check availability - Stub\n";
+            pressEnter();
+            return MainMenu;
+        case 2:
+            return EventBooking;
+        case 3:
+            return EventMonitoring;
+        case 4:
+            return exiting;
+        default:
+            cout << "Invalid option! Please select again!\n";
+            return mainMenuScreen();
+    }
+}
+    */
+
+void checkAvailability(vector<Event> &events, int &eventCount, int eventAvail[12 * 31][5])
+{
+    cout << "\n------ Check Venue Availability ------\n";
+    string date;
+    int year, month, day;
+
+    while (true)
+    {
+        cout << "\nEnter date to check venue availability (yyyy-mm-dd): ";
+        cin >> date;
+
+        // First check overall length
+        if (date.length() != 10)
+        {
+            cout << "\n[Invalid date format! Please follow (yyyy-mm-dd) and enter numbers only]\n";
+            continue;
+        }
+
+        // Check the '-' positions
+        if (date[4] != '-' || date[7] != '-')
+        {
+            cout << "\n[Invalid date format! Please follow (yyyy-mm-dd) and enter numbers only]\n";
+            continue;
+        }
+
+        // Check that all other characters are digits
+        bool validDigits = true;
+        for (int i = 0; i < date.size(); i++)
+        {
+            if (i == 4 || i == 7)
+                continue; // skip dashes
+            if (!isdigit(date[i]))
+            {
+                validDigits = false;
+                break;
+            }
+        }
+        if (!validDigits)
+        {
+            cout << "\n[Invalid date input! Please enter numbers]\n";
+            continue;
+        }
+
+        try
+        {
+            year = stoi(date.substr(0, 4));
+            month = stoi(date.substr(5, 2));
+            day = stoi(date.substr(8, 2));
+        }
+        catch (...)
+        {
+            cout << "Invalid date input! Please enter numbers.\n";
+            continue;
+        }
+
+        // Get current time
+        time_t now = time(0);
+        tm *ltm = localtime(&now);
+        int currentYear = 1900 + ltm->tm_year;
+
+        if (year < currentYear || year > currentYear + 5)
+        {
+            cout << "\n[Year out of allowed range! (" << currentYear << " - " << currentYear + 5 << ") ]\n";
+            continue;
+        }
+
+        // Handle leap years
+        int monthDays[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+        if ((year % 4 == 0 && year % 100 != 0) || (year % 400 == 0))
+        {
+            monthDays[1] = 29;
+        }
+
+        if (month < 1 || month > 12)
+        {
+            cout << "\n[Invalid month! Must be between 1-12]\n";
+            continue;
+        }
+
+        if (day < 1 || day > monthDays[month - 1])
+        {
+            cout << "\n[Invalid day for selected month]\n";
+            continue;
+        }
+
+        break;
+    }
+
+    // Calculate day index
+    int dayIndex = (month - 1) * 31 + (day - 1);
+
+    cout << "\n------ Venue Availability on " << date << " ------\n\n";
+    cout << "+---------+--------------+\n";
+    cout << "|  Venue  |    Status    |\n";
+    cout << "+---------+--------------+\n";
+
+    for (int i = 0; i < 5; i++)
+    {
+        cout << "| " << left << setw(7) << ("Hall " + to_string(i + 1)) << " | ";
+        if (eventAvail[dayIndex][i] == 1)
+        {
+            cout << left << setw(12) << "Booked" << " |\n";
+        }
+        else
+        {
+            cout << left << setw(12) << "Available" << " |\n";
+        }
+    }
+
+    cout << "+---------+--------------+\n";
+
+    cout << "\n[1] Back to Main Menu\n[2] Event booking\n[3] Display events\n[0] Exit\nSelect option: ";
+    int option;
+    cin >> option;
+
+    switch (option)
+    {
+    case 1:
+        return; // go back to main menu
+    case 2:
+        //eventBooking(events, eventCount, eventAvail, EVENTS_FILE, ORGANISER_FILE);
+        break;
+    case 3:
+        //eventMonitoring(events, eventCount, eventAvail, EVENTS_FILE, ORGANISER_FILE, COMPLAINTS_FILE);
+        break;
+    case 0:
+        cout << "\n[Exiting program...]\n";
+        exit(0);
+        break;
+    default:
+        cout << "Invalid option! Please select again!\n";
+        break;
+    }
 }

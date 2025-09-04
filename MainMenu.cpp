@@ -1,8 +1,13 @@
 #include "enum.h"
 #include <iostream>
+#define EVENTS_FILE "events.txt"
+#define COMPLAINTS_FILE "complaints.txt"
+#define VENUE_FILE "Venues.txt"
+#define USER_FILE "Users.txt"
+#define ORGANISER_FILE "organiser.txt"
 using namespace std;
 
-int mainMenu(vector<Event> &events, int &eventCount, int eventAvail[12 * 31][5], const string &EVENTS_FILE, const string &ORGANISER_FILE, const string &COMPLAINTS_FILE)
+Screen mainMenuScreen(vector<Event> &events, int &eventCount, int eventAvail[12 * 31][5])
 {
     int option;
     do
@@ -19,7 +24,7 @@ int mainMenu(vector<Event> &events, int &eventCount, int eventAvail[12 * 31][5],
         switch (option)
         {
         case 1:
-            checkAvailability(events, eventCount, eventAvail, EVENTS_FILE, ORGANISER_FILE, COMPLAINTS_FILE);
+            checkAvailability(events, eventCount, eventAvail);
             break;
         case 2:
             return EventBooking;
@@ -32,8 +37,10 @@ int mainMenu(vector<Event> &events, int &eventCount, int eventAvail[12 * 31][5],
             cout << "Invalid option! Please select again!\n";
         }
     } while (option != 0);
+    return exiting;
 }
 
+/*
 int main() {
     vector<Event> events;
     int eventCount = 0;
@@ -50,3 +57,4 @@ int main() {
     mainMenu(events, eventCount, eventAvail, EVENTS_FILE, ORGANISER_FILE, COMPLAINTS_FILE);
     return 0;
 }
+*/

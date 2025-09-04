@@ -5,17 +5,15 @@
 #include <fstream>
 using namespace std;
 
-
 //pressEnterToContinue
-void pressEnterToContinue(){
+void pressEnter() {
     cout << "\n[Press Enter to continue...]";
     cin.ignore();
     cin.get();
 }
 
-
 //displayEvent
-void displayEvent(vector<Event> &events, int eventCount){
+void displayEvent(vector<Event> &events, int eventCount) {
     cout << left
          << setw(5) << "No"
          << setw(15) << "Event Type"
@@ -28,8 +26,7 @@ void displayEvent(vector<Event> &events, int eventCount){
 
     cout << string(125, '-') << endl;
 
-    for (int i = 0; i < eventCount; i++)
-    {
+    for (int i = 0; i < eventCount; i++) {
         cout << left
              << setw(5) << i + 1
              << setw(15) << events[i].eventType
@@ -42,12 +39,9 @@ void displayEvent(vector<Event> &events, int eventCount){
     }
 }
 
-
 //displaySearchedEvents
-void displaySearchedEvents(vector<Event> &filteredEvents)
-{
-    if (filteredEvents.empty())
-    {
+void displaySearchedEvents(vector<Event> &filteredEvents) {
+    if (filteredEvents.empty()) {
         cout << "No events found.\n";
         return;
     }
@@ -64,8 +58,7 @@ void displaySearchedEvents(vector<Event> &filteredEvents)
 
     cout << string(125, '-') << endl;
 
-    for (size_t i = 0; i < filteredEvents.size(); i++)
-    {
+    for (size_t i = 0; i < filteredEvents.size(); i++) {
         cout << left
              << setw(5) << i + 1
              << setw(15) << filteredEvents[i].eventType

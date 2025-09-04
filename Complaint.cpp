@@ -3,11 +3,15 @@
 #include <iomanip>
 #include <sstream>
 #include <fstream>
+#define EVENTS_FILE "events.txt"
+#define COMPLAINTS_FILE "complaints.txt"
+#define VENUE_FILE "Venues.txt"
+#define USER_FILE "Users.txt"
+#define ORGANISER_FILE "organiser.txt"
 using namespace std;
 
-
 //manageComplaint
-void manageComplaint(vector<Event> &events, int eventCount, const string &COMPLAINTS_FILE) {
+void manageComplaint(vector<Event> &events, int eventCount) {
     if (eventCount == 0) {
         cout << "No events available to manage complaints.\n";
         return;
@@ -45,25 +49,32 @@ void manageComplaint(vector<Event> &events, int eventCount, const string &COMPLA
 
         switch (choice) {
             case 1: {
-                Complaint newComplaint;
+                Complaints newComplaint;
                 newComplaint.complaintId = events[eventIndex].complaints.size() + 1;
+                cout << "Enter complaint type: ";
+                getline(cin, newComplaint.complType);
+                cout << "Enter reporter type: ";
+                getline(cin, newComplaint.reporterType);
                 cout << "Enter complaint description: ";
                 getline(cin, newComplaint.complDesc);
                 newComplaint.complStatus = "Pending";
+                newComplaint.eventId = events[eventIndex].eventId;
                 events[eventIndex].complaints.push_back(newComplaint);
                 cout << "Complaint added successfully!\n";
-                saveComplaints(events, COMPLAINTS_FILE);
+                saveComplaints(events);
                 break;
             }
 
             case 2: {
-                loadComplaints(events, COMPLAINTS_FILE);
+                loadComplaints(events);
                 if (events[eventIndex].complaints.empty()) {
                     cout << "No complaints for this event.\n";
                 } else {
                     cout << "\n--- Complaints (" << events[eventIndex].complaints.size() << ") ---\n";
                     for (auto &c : events[eventIndex].complaints) {
                         cout << "ID: " << c.complaintId 
+                             << " | Type: " << c.complType
+                             << " | Reporter: " << c.reporterType
                              << " | Description: " << c.complDesc
                              << " | Status: " << c.complStatus << endl;
                     }
@@ -83,16 +94,17 @@ void manageComplaint(vector<Event> &events, int eventCount, const string &COMPLA
                     for (auto &c : events[eventIndex].complaints) {
                         if (c.complaintId == compId) {
                             found = true;
-                            int opt;
-                            cout << "Update Status:\n[1] Pending\n[2] In Progress\n[3] Solved\nSelect: ";
-                            cin >> opt;
-                            switch (opt) {
+                            cout << "Select new status:\n[1] Pending\n[2] In Progress\n[3] Solved\n";
+                            int statusChoice;
+                            cin >> statusChoice;
+                            switch (statusChoice) {
                                 case 1: c.complStatus = "Pending"; break;
                                 case 2: c.complStatus = "In Progress"; break;
                                 case 3: c.complStatus = "Solved"; break;
                                 default: cout << "Invalid option!\n"; continue;
                             }
                             cout << "Complaint status updated!\n";
+                            saveComplaints(events);
                             break;
                         }
                     }
@@ -113,9 +125,8 @@ void manageComplaint(vector<Event> &events, int eventCount, const string &COMPLA
     } while (choice != 0);
 }
 
-
 //saveComplaints
-void saveComplaints(const vector<Event>& events, const string& COMPLAINTS_FILE) {
+void saveComplaints(const vector<Event>& events) {
     ofstream outFile(COMPLAINTS_FILE);
     if (!outFile) {
         cout << "Error saving complaints\n";
@@ -134,9 +145,8 @@ void saveComplaints(const vector<Event>& events, const string& COMPLAINTS_FILE) 
     outFile.close();
 }
 
-
 //loadComplaints
-void loadComplaints(vector<Event>& events, const string& COMPLAINTS_FILE) {
+void loadComplaints(vector<Event>& events) {
     ifstream inFile(COMPLAINTS_FILE);
     if (!inFile) {
         return; // No complaints file yet
@@ -159,7 +169,7 @@ void loadComplaints(vector<Event>& events, const string& COMPLAINTS_FILE) {
             // Find the event by eventId
             for (auto& event : events) {
                 if (event.eventId == eventId) {
-                    Complaint c;
+                    Complaints c;
                     c.eventId = eventId;
                     c.complaintId = complaintId;
                     c.complStatus = status;

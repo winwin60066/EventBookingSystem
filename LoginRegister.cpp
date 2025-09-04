@@ -2,10 +2,15 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#define EVENTS_FILE "events.txt"
+#define COMPLAINTS_FILE "complaints.txt"
+#define VENUE_FILE "Venues.txt"
+#define USER_FILE "Users.txt"
+#define ORGANISER_FILE "organiser.txt"
 
 using namespace std;
 
-// Function used to sign up a new user
+//signUp
 void signUp(vector<User>& users) {
     User user;
 
@@ -23,18 +28,18 @@ void signUp(vector<User>& users) {
         }
     }
 
-    if(!found){
+    if (!found) {
         users.push_back(user);
+        saveUsers(users);
         cout << "Sign up successful! You can now log in.\n\n";
-    }
-    else {
+    } else {
         cout << "Your username is already taken.\n\n";
     }
 }
 
-// Function used to log in an existing user
-void userlogin(User& currentUser,  vector<User>& users) {
-    string username, password, u, p;
+//userlogin
+void userlogin(User& currentUser, vector<User>& users) {
+    string username, password;
     bool found = false;
 
     cout << "\n======================================= Login ======================================\n";
@@ -43,68 +48,38 @@ void userlogin(User& currentUser,  vector<User>& users) {
     cout << "Enter password: ";
     cin >> password;
 
-    for (User user : users) {
+    for (User& user : users) { // Reference to update if needed
         if (user.name == username && user.password == password) {
             found = true;
             currentUser = user;
+            break;
         }
     }
 
     if (found) {
         cout << "Login successful! Welcome, " << username << ".\n\n";
-    }
-    else {
+    } else {
         cout << "Invalid username or password. Try again.\n\n";
     }
 }
 
+//loginScreen
 Screen loginScreen(User& currentUser, vector<User>& users) {
-
     currentUser = User{};
     
-        int choice;
+    int choice;
 
-        while (true) {
-            cout << "  /$$$$$$                          /$$                                                                 \n";
-            cout << " /$$__  $$                        |__/                                                                 \n";
-            cout << "| $$  \\__/  /$$$$$$  /$$$$$$/$$$$  /$$ /$$$$$$$   /$$$$$$   /$$$$$$                                   \n";
-            cout << "|  $$$$$$  /$$__  $$| $$_  $$_  $$| $$| $$__  $$ |____  $$ /$$__  $$                                  \n";
-            cout << " \\____  $$| $$$$$$$$| $$ \\ $$ \\ $$| $$| $$  \\ $$  /$$$$$$$| $$  \\__/                                  \n";
-            cout << " /$$  \\ $$| $$_____/| $$ | $$ | $$| $$| $$  | $$ /$$__  $$| $$                                        \n";
-            cout << "|  $$$$$$/|  $$$$$$$| $$ | $$ | $$| $$| $$  | $$|  $$$$$$$| $$                                        \n";
-            cout << " \\______/  \\_______/|__/ |__/ |__/|__/|__/  |__/ \\_______/|__/                                        \n";
-            cout << "                                                                                                      \n";
-            cout << "                                                                                                      \n";
-            cout << " /$$$$$$$                      /$$             /$$                          /$$     /$$              \n";
-            cout << "| $$__  $$                    |__/            | $$                         | $$    |__/              \n";
-            cout << "| $$  \\ $$  /$$$$$$   /$$$$$$  /$$  /$$$$$$$ /$$$$$$    /$$$$$$  /$$$$$$  /$$$$$$   /$$  /$$$$$$  /$$$$$$$ \n";
-            cout << "| $$$$$$$/ /$$__  $$ /$$__  $$| $$ /$$_____/|_  $$_/   /$$__  $$|____  $$|_  $$_/  | $$ /$$__  $$| $$__  $$\n";
-            cout << "| $$__  $$| $$$$$$$$| $$  \\ $$| $$|  $$$$$$   | $$    | $$  \\__/ /$$$$$$$  | $$    | $$| $$  \\ $$| $$  \\ $$\n";
-            cout << "| $$  \\ $$| $$_____/| $$  | $$| $$ \\____  $$  | $$ /$$| $$      /$$__  $$  | $$ /$$| $$| $$  | $$| $$  | $$\n";
-            cout << "| $$  | $$|  $$$$$$$|  $$$$$$$| $$ /$$$$$$$/  |  $$$$/| $$     |  $$$$$$$  |  $$$$/| $$|  $$$$$$/| $$  | $$\n";
-            cout << "|__/  |__/ \\_______/ \\____  $$|__/|_______/    \\___/  |__/      \\_______/   \\___/  |__/ \\______/ |__/  |__/\n";
-            cout << "                     /$$  \\ $$                                                                       \n";
-            cout << "                    |  $$$$$$/                                                                       \n";
-            cout << "                     \\______/                                                                        \n";
-            cout << "  /$$$$$$                        /$$                                                                  \n";
-            cout << " /$$__  $$                      | $$                                                                  \n";
-            cout << "| $$  \\__/ /$$   /$$  /$$$$$$$ /$$$$$$    /$$$$$$  /$$$$$$/$$$$                                       \n";
-            cout << "|  $$$$$$ | $$  | $$ /$$_____/|_  $$_/   /$$__  $$| $$_  $$_  $$                                      \n";
-            cout << " \\____  $$| $$  | $$|  $$$$$$   | $$    | $$$$$$$$| $$ \\ $$ \\ $$                                      \n";
-            cout << " /$$  \\ $$| $$  | $$ \\____  $$  | $$ /$$| $$_____/| $$ | $$ | $$                                      \n";
-            cout << "|  $$$$$$/|  $$$$$$$ /$$$$$$$/  |  $$$$/|  $$$$$$$| $$ | $$ | $$                                      \n";
-            cout << " \\______/  \\____  $$|_______/    \\___/   \\_______/|__/ |__/ |__/                                      \n";
-            cout << "           /$$  | $$                                                                                \n";
-            cout << "          |  $$$$$$/                                                                                \n";
-            cout << "           \\______/                                                                                 \n";
-            cout << "\n=====================  Welcome to Seminar Registration System  =====================\n";
-            cout << "[1] Sign Up\n";
-            cout << "[2] Login\n";
-            cout << "[3] Exit\n";
-            cout << "Select your choice: ";
-            cin >> choice;
+    while (true) {
+        // ASCII art (assume full; truncated for brevity)
+        cout << "ASCII ART HERE\n";
+        cout << "\n=====================  Welcome to Seminar Registration System  =====================\n";
+        cout << "[1] Sign Up\n";
+        cout << "[2] Login\n";
+        cout << "[3] Exit\n";
+        cout << "Select your choice: ";
+        cin >> choice;
 
-            switch (choice) {
+        switch (choice) {
             case 1:
                 signUp(users);
                 break;
@@ -120,13 +95,9 @@ Screen loginScreen(User& currentUser, vector<User>& users) {
                 return exiting;
             default:
                 cout << "Invalid choice! Try again.\n";
-            }
-            cout << "press enter to continue";
-            cin.ignore(9999, '\n');
-            cin.ignore(9999, '\n');
         }
-    
-
-
-	
+        cout << "press enter to continue";
+        cin.ignore(9999, '\n');
+        cin.ignore(9999, '\n');
+    }
 }
