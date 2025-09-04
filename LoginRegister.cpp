@@ -6,7 +6,6 @@
 #define COMPLAINTS_FILE "complaints.txt"
 #define VENUE_FILE "Venues.txt"
 #define USER_FILE "Users.txt"
-#define ORGANISER_FILE "organiser.txt"
 
 using namespace std;
 

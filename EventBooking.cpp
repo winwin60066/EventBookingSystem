@@ -10,7 +10,6 @@
 #define COMPLAINTS_FILE "complaints.txt"
 #define VENUE_FILE "Venues.txt"
 #define USER_FILE "Users.txt"
-#define ORGANISER_FILE "organiser.txt"
 using namespace std;
 
 // Forward declarations
@@ -107,7 +106,6 @@ Screen bookingScreen(vector<Event> &events, int &eventCount, int eventAvail[12 *
         // Example: newEvent.startTime = ...;
         // newEvent.venue = getVenue(...);
         // newEvent.equipments = getEquipment(...);
-        // newEvent.organiser.orgaName = ...;
         // etc.
 
         cout << "Enter event description: ";
@@ -118,14 +116,6 @@ Screen bookingScreen(vector<Event> &events, int &eventCount, int eventAvail[12 *
         newEvent.expectedPartiQty = 0; // Prompt if needed
         newEvent.actualPartiQty = 0;
         newEvent.paid = 0.0;
-
-        // Assign ownership
-        newEvent.owner = currentUser;
-
-        // Add to events
-        newEvent.eventId = events.size() + 1;
-        events.push_back(newEvent);
-        currentUser.owned.push_back(newEvent.eventId);
 
         // Update users vector with updated currentUser
         for (auto& u : users) {
@@ -143,6 +133,17 @@ Screen bookingScreen(vector<Event> &events, int &eventCount, int eventAvail[12 *
         cin >> confirmation;
         cin.ignore();
     } while (tolower(confirmation) == 'y');
+
+    newEvent.owner = currentUser;
+
+    //save the event
+    newEvent.eventId = eventCount + 1; // Assign a unique event ID
+    newEvent.owner = currentUser; // Assign the current user as the owner
+    currentUser.owned.push_back(newEvent.eventId); // Track event ownership
+    events.push_back(newEvent); // Add event to vector
+    eventCount++; // Increment event count
+    saveEvents(events, eventCount); // Save events to file
+    saveUsers(users); // Update users with new owned event
 
     return MainMenu; // Or appropriate screen
 }

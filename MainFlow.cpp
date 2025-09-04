@@ -12,7 +12,6 @@
 #define COMPLAINTS_FILE "complaints.txt"
 #define VENUE_FILE "Venues.txt"
 #define USER_FILE "Users.txt"
-#define ORGANISER_FILE "organiser.txt"
 using namespace std;
 
 // Forward declarations
@@ -92,11 +91,8 @@ int main() {
     saveEvents(events, eventCount);
     saveUsers(users);
     saveComplaints(events);
-    saveOrganiser(events, eventCount);
-
-    // Print the exit message here (always executed on exit)
+    
     cout << "Exiting program...\n";
-
     return 0;
 }
 
@@ -160,7 +156,6 @@ void loadEvents(vector<Event>& events, int& eventCount, int eventAvail[12*31][5]
             getline(equipSS, token, ','); evt.equipments.helpers = stoi(token);
             getline(equipSS, token, ','); evt.equipments.tents = stoi(token);
             evt.eventDesc = descStr;
-            evt.organiser.orgaName = orgNameStr; // Adjust if more fields
 
             // Mark availability
             int dayIndex = (evt.date.month - 1) * 31 + (evt.date.day - 1);
@@ -430,10 +425,10 @@ void checkAvailability(vector<Event> &events, int &eventCount, int eventAvail[12
     case 1:
         return; // go back to main menu
     case 2:
-        //eventBooking(events, eventCount, eventAvail, EVENTS_FILE, ORGANISER_FILE);
+        //eventBooking(events, eventCount, eventAvail);
         break;
     case 3:
-        //eventMonitoring(events, eventCount, eventAvail, EVENTS_FILE, ORGANISER_FILE, COMPLAINTS_FILE);
+        //eventMonitoring(events, eventCount, eventAvail);
         break;
     case 0:
         cout << "\n[Exiting program...]\n";

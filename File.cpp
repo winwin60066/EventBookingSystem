@@ -7,7 +7,6 @@
 #define COMPLAINTS_FILE "complaints.txt"
 #define VENUE_FILE "Venues.txt"
 #define USER_FILE "Users.txt"
-#define ORGANISER_FILE "organiser.txt"
 using namespace std;
 
 //saveEvents
@@ -34,8 +33,7 @@ void saveEvents(vector<Event> &events, int eventCount) {
                      << events[i].equipments.bins << ","
                      << events[i].equipments.helpers << ","
                      << events[i].equipments.tents << "|"
-                     << events[i].eventDesc << "|"
-                     << events[i].organiser.orgaName << "\n";
+                     << events[i].eventDesc << "\n";
     }
     outEventFile.close();
 }

@@ -63,12 +63,6 @@ struct Equipment {
     }
 };
 
-struct Organiser {
-    string orgaName;
-    string orgaPhoneNo;
-    string orgaEmail;
-};
-
 struct Participant {
     string partiName;
     bool attended;
@@ -104,7 +98,6 @@ struct Event {
     double entryFee = 0.00;
     int expectedPartiQty;
     int actualPartiQty;
-    Organiser organiser; // Combined for clarity
     vector<Participant> participants;
     vector<Complaints> complaints;
     User owner;
@@ -154,9 +147,6 @@ void loadComplaints(vector<Event>&);
 // File IO
 void saveEvents(vector<Event>&, int&);
 void saveUsers(const vector<User>&);
-void saveOrganiser(vector<Event>&, int);
-void loadOrganiserFromFile(vector<Event>&);
-
 // Others
 void pressEnter();
 void displayEvent(vector<Event>&, int);
