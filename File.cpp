@@ -25,6 +25,7 @@ void saveEvents(vector<Event> &events, int eventCount, const string &EVENTS_FILE
                      << events[i].date.toString() << "|"
                      << events[i].timeDuration << "|"
                      << events[i].venue.venue << "|"
+                     << events[i].entryFee << "|"
                      << events[i].equipments.chairs << ","
                      << events[i].equipments.tables << ","
                      << events[i].equipments.booths << ","

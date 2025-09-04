@@ -6,7 +6,7 @@
 using namespace std;
 
 
-
+/*
 //eventMonitoring
 void eventMonitoring(vector<Event> &events, int eventCount, int eventAvail[12 * 31][5], const string &EVENTS_FILE, const string &ORGANISER_FILE, const string &COMPLAINTS_FILE)
 {
@@ -58,7 +58,7 @@ void eventMonitoring(vector<Event> &events, int eventCount, int eventAvail[12 * 
         }
     }
 }
-
+*/
 
 //searchEvents
 void searchEvents(vector<Event> &events, int eventCount)
@@ -211,7 +211,7 @@ void deleteEvent(vector<Event> &events, int &eventCount, int eventAvail[12 * 31]
 
 
 //updateEventStatus
-void updateEventStatus(vector<Event> &events, int eventCount, int eventAvail[12 * 31][5], const string &EVENTS_FILE, const string &ORGANISER_FILE, const string &COMPLAINTS_FILE) {
+void updateEventStatus(vector<Event> &events, int eventCount, int eventAvail[12 * 31][5], const string &EVENTS_FILE, const string &COMPLAINTS_FILE) {
     int updateStatus;
     cout << "\n------ Update Event Status ------\n";
     cout << "Enter event ID to update status or [55] to search event: ";
@@ -252,7 +252,7 @@ void updateEventStatus(vector<Event> &events, int eventCount, int eventAvail[12 
             cout << "\n[Status Updated Successfully!]\n";
             saveEvents(events, eventCount, EVENTS_FILE);
             pressEnterToContinue();
-            // FIXED: Removed recursive call
+            
             found = true;
             break;
         }
@@ -328,5 +328,42 @@ void partiAttendance(vector<Event> &events, int eventCount) {
     }
     default:
         cout << "Invalid option!\n";
+    }
+}
+
+
+//TODO: show menu option
+Screen monitoringScreen(User& currentUser, vector<User>& users, vector<Event>& events, int& eventCount, int eventAvail[12*31][5], const string& EVENTS_FILE, const string& COMPLAINTS_FILE){
+    system("cls");
+    int choice;
+
+    while(true){
+        cout << "\n---------- Event Management ----------\n";
+        printAll({"Display All Events","Search Event","Update/Manage Event Status","Check/Manage Participants Attendance","Add/View Complaints from Participants","Delete Event","Generate Report","Back to Main Menu","Exit"});
+        int input;
+        cin >> input;
+        cin.ignore();
+
+        switch(input){
+            case 1:
+                displayEvent(events,eventCount); pressEnter(); break;
+            case 2:
+                searchEvents(events, eventCount); pressEnter; break;
+            case 3:
+                updateEventStatus(events, eventCount, eventAvail, EVENTS_FILE,COMPLAINTS_FILE); pressEnter; break;
+            case 4:
+                partiAttendance(events, eventCount);
+            case 5:
+                return Complaint;
+            case 6:
+                deleteEvent(events, eventCount, eventAvail, EVENTS_FILE); pressEnter; break;
+            case 7:
+                cout << "GO TO REPORT"; break;
+            case 8: 
+                return MainMenu;
+            case 9: return exiting;
+            default:
+                cout << "Invalid option! Please try again!"; return;
+        }
     }
 }

@@ -1,0 +1,1 @@
+1|Scheduled|Seminar|a|2025-12-12|00:00 to 12:55|Hall 1|1,1,1,1,1,1,1|okok|a

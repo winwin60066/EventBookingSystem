@@ -5,27 +5,50 @@
 #include <string>
 #include <iostream>
 #include <sstream>
+using namespace std;
 
-// ===== 数据结构 =====
+
 struct Date {
     int day, month, year;
     bool operator==(const Date& other) const {
         return day == other.day && month == other.month && year == other.year;
     }
-    std::string toString() const {
-        std::stringstream ss;
-        ss << year << "-" << (month<10?"0":"") << month << "-" << (day<10?"0":"") << day;
-        return ss.str();
-    }
+    string toString() const {
+		return to_string(day) + "-" + to_string(month) + "-" + to_string(year);
+	};
 };
 
-struct Venue {
-    std::string venue;
-    std::string avaEquipment;
-    std::string size;
-    std::string desc;
-    std::vector<Date> datesBooked;
+struct Venue
+{
+    string venue;
+    string avaEquipment;
+    string size;
+    string desc;
+    vector<Date> datesBooked;
     double price;
+
+    bool operator==(const Venue& other) const {
+		return venue == other.venue && avaEquipment == other.avaEquipment && size == other.size;
+	}
+};
+
+//TODO
+enum Screen {
+	LoginRegister,
+	home,
+	adPage,
+	viewEvent,
+	newEvent,
+	payment,
+	comments,
+	exiting,
+	editEvent,
+    //
+    Complaint,
+    EventBooking,
+    MainMenu,
+    EventMonitoring
+    
 };
 
 struct Equipment {
@@ -40,83 +63,132 @@ struct Equipment {
             case 4: return bins;
             case 5: return helpers;
             case 6: return tents;
-            default: throw std::out_of_range("Invalid index");
+            default: throw out_of_range("Invalid index");
         }
     }
 };
 
 struct Organiser {
-    std::string orgaName;
-    std::string orgaPhoneNo;
-    std::string orgaEmail;
+    string orgaName;
+    string orgaPhoneNo;
+    string orgaEmail;
 };
 
 struct Participant {
-    std::string partiName;
+    string partiName;
     bool attended;
 };
 
-struct Complaint {
+struct Complaints {
     int eventId;
     int complaintId;
-    std::string complStatus;
-    std::string complType;
-    std::string reporterType;
-    std::string complDesc;
+    string complStatus;
+    string complType;
+    string reporterType;
+    string complDesc;
+};
+
+struct User {
+	string name;
+	string password;
+	vector<int> reservationID;
 };
 
 struct Event {
-    std::string eventStatus;
-    int eventId;
-    std::string eventType;
-    std::string eventName;
+    string eventStatus;
+    int eventId; //or id
+    string eventType;
+    string eventName;
     Date date;
-    std::string startTime, endTime, timeDuration;
+    string startTime, endTime, timeDuration;
     Venue venue;
     Equipment equipments;
-    std::string eventDesc;
+    string eventDesc;
     double paid = 0.00;
+    double entryFee = 0.00;
     int expectedPartiQty;
     int actualPartiQty;
     Organiser orgaName;
     Organiser orgaPhoneNo;
     Organiser orgaEmail;
-    std::vector<Participant> participants;
-    std::vector<Complaint> complaints;
+    vector<Participant> participants;
+    vector<Complaints> complaints;
+    User owner; //TODO not sure for what
 };
 
-// ====== 函数声明 ======
+struct Comment {
+	string username;
+	string comment;
+};
+
+// inline is to allow multiple modules to implement this
+inline void printAll(initializer_list<string> list) {
+	int counter = 1;
+	for (const auto& b : list) {
+		cout << "press " << counter << " for " << b << "\n";
+		counter++;
+	}
+}
+
+inline void pressEnter() {
+	cout << "press enter to continue";
+	cin.ignore(9999, '\n');
+}
+Screen loginScreen(User& currentUser, vector<User>& users);
+Screen monitoringScreen(User& currentUser, vector<User>& users, vector<Event>& events, int& eventCount, int eventAvail[12*31][5], const string& EVENTS_FILE, const string& COMPLAINTS_FILE);
+Screen bookingScreen(vector<Event> &events, vector<Venue> venues, User currentUser);
+
+
+
+Screen newEventScreen(vector<Event>&, vector<Venue>, User);
+
+void switchScreen();
+void switchBack();
+bool checkInt(int&);
+bool checkValidDate(Event);
+Event getDate(Event);
+vector<Venue> getValidVenues(vector<Venue>, Date);
+Venue getVenue(vector<Venue>&, Date);
+Equipment getEquipment(Equipment);
+
+Screen editEventScreen(vector<Event>&, vector<Venue>, int);
+
+void searchEvents(vector<Event>& events, int eventCount);
+
+Screen menu();
+
+
 // main menu
-void mainMenu(std::vector<Event>&, int&, int[12*31][5],
-              const std::string&, const std::string&, const std::string&);
+void mainMenu(vector<Event>&, int&, int[12*31][5],
+              const string&, const string&, const string&);
 
 // event management
-void eventBooking(std::vector<Event>&, int&, int[12*31][5],
-                  const std::string&, const std::string&);
-void checkAvailability(std::vector<Event>&, int&, int[12*31][5],
-                       const std::string&, const std::string&, const std::string&);
-void eventMonitoring(std::vector<Event>&, int, int[12*31][5],
-                     const std::string&, const std::string&, const std::string&);
-void searchEvents(std::vector<Event>&, int);
-void deleteEvent(std::vector<Event>&, int&, int[12*31][5], const std::string&);
-void updateEventStatus(std::vector<Event>&, int, int[12*31][5],
-                       const std::string&, const std::string&, const std::string&);
-void partiAttendance(std::vector<Event>&, int);
+void eventBooking(vector<Event>&, int&, int[12*31][5],
+                  const string&, const string&);
+void checkAvailability(vector<Event>&, int&, int[12*31][5],
+                       const string&, const string&, const string&);
+void eventMonitoring(vector<Event>&, int, int[12*31][5],
+                     const string&, const string&, const string&);
+void searchEvents(vector<Event>&, int);
+void deleteEvent(vector<Event>&, int&, int[12*31][5], const string&);
+void updateEventStatus(vector<Event>&, int, int[12*31][5],
+                       const string&, const string&, const string&);
+void partiAttendance(vector<Event>&, int);
 
 // complaints
-void manageComplaint(std::vector<Event>&, int, const std::string&);
-void saveComplaints(const std::vector<Event>&, const std::string&);
-void loadComplaints(std::vector<Event>&, const std::string&);
+void manageComplaint(vector<Event>&, int, const string&);
+void saveComplaints(const vector<Event>&, const string&);
+void loadComplaints(vector<Event>&, const string&);
 
 // file io
-void saveEvents(std::vector<Event>&, int, const std::string&);
-void loadEventFromFile(std::vector<Event>&, int&, int[12*31][5], const std::string&);
-void saveOrganiser(std::vector<Event>&, int, const std::string&);
-void loadOrganiserFromFile(std::vector<Event>&, const std::string&);
+void saveEvents(vector<Event>&, int, const string&);
+void loadEventFromFile(vector<Event>&, int&, int[12*31][5], const string&);
+void saveOrganiser(vector<Event>&, int, const string&);
+void loadOrganiserFromFile(vector<Event>&, const string&);
 
-// utils
+// 
 void pressEnterToContinue();
-void displayEvent(std::vector<Event>&, int);
-void displaySearchedEvents(std::vector<Event>&);
+void displayEvent(vector<Event>&, int);
+void displaySearchedEvents(vector<Event>&);
 
 #endif

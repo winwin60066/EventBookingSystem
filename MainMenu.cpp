@@ -2,7 +2,7 @@
 #include <iostream>
 using namespace std;
 
-void mainMenu(vector<Event> &events, int &eventCount, int eventAvail[12 * 31][5], const string &EVENTS_FILE, const string &ORGANISER_FILE, const string &COMPLAINTS_FILE)
+int mainMenu(vector<Event> &events, int &eventCount, int eventAvail[12 * 31][5], const string &EVENTS_FILE, const string &ORGANISER_FILE, const string &COMPLAINTS_FILE)
 {
     int option;
     do
@@ -10,7 +10,8 @@ void mainMenu(vector<Event> &events, int &eventCount, int eventAvail[12 * 31][5]
         cout << "\n------ Main Menu ------\n";
         cout << "[1] Check venue availability\n";
         cout << "[2] Event booking\n";
-        cout << "[3] Display events and event management\n";
+        cout << "[3] Manage Events\n";
+        cout << "[4]";
         cout << "[0] Exit\n";
         cout << "\nSelect your option: ";
         cin >> option;
@@ -21,11 +22,9 @@ void mainMenu(vector<Event> &events, int &eventCount, int eventAvail[12 * 31][5]
             checkAvailability(events, eventCount, eventAvail, EVENTS_FILE, ORGANISER_FILE, COMPLAINTS_FILE);
             break;
         case 2:
-            eventBooking(events, eventCount, eventAvail, EVENTS_FILE, ORGANISER_FILE);
-            break;
+            return EventBooking;
         case 3:
-            eventMonitoring(events, eventCount, eventAvail, EVENTS_FILE, ORGANISER_FILE, COMPLAINTS_FILE);
-            break;
+            return EventMonitoring;
         case 0:
             cout << "\n[Exiting program...]\n";
             break;

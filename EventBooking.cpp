@@ -5,81 +5,106 @@
 #include <fstream>
 using namespace std;
 
+bool checkInt(int&);
+Venue getVenue(vector<Venue>& venues, Date date);
+Event getDate(Event event);
+vector<Venue> getValidVenues(vector<Venue> venues, Date date);
+Equipment getEquipment(Equipment equipment);
+
+// this is just to save current screen and switch screen when choosing equipment
+void switchScreen() {
+    cout << "\033[?1049h";
+}
+// this too
+void switchBack() {
+    cout << "\033[?1049l";
+}
 
 //eventBooking
-void eventBooking(vector<Event> &events, int &eventCount, int eventAvail[12 * 31][5],const string &EVENTS_FILE, const string &ORGANISER_FILE)
+int eventBooking(vector<Event> &events, int &eventCount, int eventAvail[12 * 31][5],const string &EVENTS_FILE, Equipment equipment)
 {
     Event newEvent;
     char confirmation;
     string date;
     int year, month, day;
+    Event event = Event();
+    
 
     do
     {
         cout << "\n------ Event Booking ------\n";
-        int eventTypeChoice;
-        cout << "\n[1] Seminar\n[2] Talk\n\nSelect event type: ";
+        int eventTypeChoice; string selfType;
+        cout << "\n[1] Seminar\n[2] Talk\n[3] Conference [4] Others(self type)\nSelect event type: ";
         cin >> eventTypeChoice;
 
         if (eventTypeChoice == 1)
             newEvent.eventType = "Seminar";
         else if (eventTypeChoice == 2)
             newEvent.eventType = "Talk";
-        else
-            newEvent.eventType = "Other";
-
+        else if(eventTypeChoice == 3)
+            newEvent.eventType = "Conference";
+        else if(eventTypeChoice == 4){
+            cout << "Enter other type: ";
+            cin >> selfType;
+            newEvent.eventType = selfType;
+        }
+            
         cin.ignore();
-        cout << "\nEnter your event name: ";
-        getline(cin, newEvent.eventName);
-
+        while(event.eventName == "") {
+        cout << "Insert event name: ";
+        getline(cin, event.eventName);
+        //check if name is empty
+        if (event.eventName == "") {
+            cout << "[Event name cannot be empty. Please try again!]\n";
+        }
+    }
         // Date validation loop
+        bool repeat = false;
         while (true)
         {
-            cout << "\nEnter event date (yyyy-mm-dd): ";
-            cin >> date;
-
-            // Format check
-            if (date.length() != 10 || date[4] != '-' || date[7] != '-')
-            {
-                cout << "\n[Invalid date format! Use yyyy-mm-dd]\n";
-                continue;
-            }
-
-            // Digit check
-            bool validDigits = true;
-            for (size_t i = 0; i < date.size(); i++)
-            {
-                if (i == 4 || i == 7)
-                    continue; // skip dashes
-                if (!isdigit(date[i]))
-                {
-                    validDigits = false;
-                    break;
+            //day
+            do{
+                cout << "\n[Enter Event Date]\n";
+                cout << "Day: ";
+                cin >> event.date.day;
+                if(!checkInt(event.date.day)){
+                    cout << "\nPlease insert a number\n";
+                    repeat = true;
+                }else{
+                    repeat = false;
                 }
-            }
-            if (!validDigits)
-            {
-                cout << "\n[Invalid date input! Please enter numbers]\n";
-                continue;
-            }
+            }while(repeat);
 
-            try
-            {
-                year = stoi(date.substr(0, 4));
-                month = stoi(date.substr(5, 2));
-                day = stoi(date.substr(8, 2));
-            }
-            catch (...)
-            {
-                cout << "\n[Invalid numbers in date]\n";
-                continue;
-            }
+            //month
+            do{
+                cout << "\nMonth: ";
+                cin >> event.date.month;
+                if(!checkInt(event.date.month)){
+                    cout << "\nPlease insert a number\n";
+                    repeat = true;
+                }else{
+                    repeat = false;
+                }
+            }while(repeat);
+
+            //year
+            do{
+                cout << "\nYear: ";
+                cin >> event.date.year;
+                if(!checkInt(event.date.year)){
+                    cout << "\nPlease insert a number\n";
+                    repeat = true;
+                }else{
+                    repeat = false;
+                }
+            }while(repeat);
+
 
             // Year range check
             time_t now = time(0);
             tm *ltm = localtime(&now);
             int currentYear = 1900 + ltm->tm_year;
-            if (year < currentYear || year > currentYear + 5)
+            if (event.date.year < currentYear || event.date.year > currentYear + 5)
             {
                 cout << "\n[Year out of allowed range! (" << currentYear << " - " << currentYear + 5 << ")]\n";
                 continue;
@@ -87,22 +112,22 @@ void eventBooking(vector<Event> &events, int &eventCount, int eventAvail[12 * 31
 
             // Leap year & month/day checks
             int monthDays[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-            if ((year % 4 == 0 && year % 100 != 0) || (year % 400 == 0))
+            if ((event.date.year % 4 == 0 && year % 100 != 0) || (event.date.year % 400 == 0))
                 monthDays[1] = 29;
 
-            if (month < 1 || month > 12)
+            if (event.date.month < 1 || event.date.month > 12)
             {
                 cout << "\n[Invalid month! Must be 1-12]\n";
                 continue;
             }
-            if (day < 1 || day > monthDays[month - 1])
+            if (event.date.day < 1 || event.date.day > monthDays[event.date.month - 1])
             {
                 cout << "\n[Invalid day for this month]\n";
                 continue;
             }
 
             // Save valid date
-            newEvent.date = {day, month, year};
+            newEvent.date = {event.date.day, event.date.month, event.date.year};
             break;
         }
 
@@ -200,42 +225,32 @@ void eventBooking(vector<Event> &events, int &eventCount, int eventAvail[12 * 31
             break;
         }
 
-        // Equipment selection
-        cout << "\n---------- Equipment Selection ----------\n";
-        string equipmentNames[] = {"Chairs", "Tables", "Booths", "Projectors", "Bins", "Helpers", "Tents"};
-
-        for (int i = 0; i < 7; i++)
-        {
-            int quantity;
-            while (true)
-            {
-                cout << "Enter number of " << equipmentNames[i] << ": ";
-                cin >> quantity;
-
-                // Check for input failure (non-numeric input)
-                if (cin.fail())
-                {
-                    cout << "[Please enter a valid number (0 or positive)]\n";
-                    cin.clear();
-                    cin.ignore(1000, '\n');
-                    continue;
-                }
-
-                // Check for negative numbers
-                if (quantity < 0)
-                {
-                    cout << "[Please enter a valid number (0 or positive)]\n";
-                    continue;
-                }
-
-                break;
-            }
-            newEvent.equipments[i] = quantity;
+        //entry fee
+        while (true) {
+        cout << "\nEntry fee for each participant(Non-adjustable) : RM ";
+        if (cin >> event.entryFee) {
+            // if successful then break
+            cin.ignore(9999, '\n');
+            break;
         }
+        else {
+            cin.clear();
+            cout << "[Entry fee cannot be empty! Please try again!]";
+        }
+        cin.ignore(9999, '\n');
+    }
+
+        getEquipment(equipment);
+        newEvent.equipments = equipment;
 
         cin.ignore();
-        cout << "\nEnter event description (if any): ";
-        getline(cin, newEvent.eventDesc);
+        while (event.eventDesc == "") {
+        cout << "\nInsert event Description: ";
+        getline(cin, event.eventDesc);
+        if (event.eventDesc == "") {
+            cout << "[Event Description cannot be empty. Please try again!]\n";
+        }
+    }
 
         newEvent.timeDuration = newEvent.startTime + " to " + newEvent.endTime;
 
@@ -323,25 +338,19 @@ void eventBooking(vector<Event> &events, int &eventCount, int eventAvail[12 * 31
     
 
     saveEvents(events, eventCount, EVENTS_FILE);
-    saveOrganiser(events, eventCount, ORGANISER_FILE);
 
-    char option;
+    int option;
     do
     {
         cout << "\n[1] Manage and View Event\n[2] Back To Main Menu\nSelect Option: ";
         cin >> option;
-        option = tolower(option);
 
-        if (option == '1') // FIXED: Compare with character not integer
-        {
-            return; // FIXED: Let caller handle navigation
-        }else if (option == '2')
-        {
-            return; // FIXED: Let caller handle navigation  
-        }else
-        {
-            cout << "\n[Invalid option! Please try again!]\n";
+        switch(option){
+            case 1: return EventMonitoring;
+            case 2: return MainMenu;
+            default: cout << "Invalid option! Please try again!"; return;
         }
+
     } while (true);
 }
 
@@ -480,4 +489,77 @@ void checkAvailability(vector<Event> &events, int &eventCount, int eventAvail[12
         cout << "Invalid option! Please select again!\n";
         break;
     }
+}
+
+Equipment getEquipment(Equipment equipment) {
+    string equipNames[] = {"chairs", "tables", "booths", "projectors", "bins", "helpers", "tents"};
+    int equipLength = sizeof(equipNames) / sizeof(equipNames[0]);
+
+    switchScreen();
+    system("cls");
+    int input = 1;
+    int equipNum = 0;
+    while (input != 0) {
+        cout << "Are there any equipments that you would like to borrow?\n\n";
+        cout << "You have currently borrowed: \n";
+        for (int i = 0; i < equipLength; i++) {
+            cout << left << setw(11) << equipNames[i] << " : " << equipment[i] << "\n";
+        }
+        cout << "\n";
+        printAll({ "chairs", "tables", "booths", "projectors", "bins", "helpers", "tents" });
+        cout << "press 0 when done\n";
+        cout << "Select equipment (1-" << equipLength << "): ";
+        if (!checkInt(input)) {
+            cout << "please insert a valid number\n";
+            pressEnter();
+            continue;
+        }
+        if (input == 0) break;
+        if (input < 1 || input > equipLength) {
+            cout << "please insert 1 - " << equipLength << "\n";
+            pressEnter();
+            continue;
+        }
+        // get number of equipment
+        while (true) {
+            cout << "How many " << equipNames[input - 1] << " would you like to borrow: ";
+            if (!checkInt(equipNum)) {
+                cout << "please insert a valid number\n";
+                pressEnter();
+            }
+            else if (equipNum < 0) {
+                cout << "Invalid number of equipment borrowed\n\n";
+                pressEnter();
+            }
+            else {
+                equipment[input - 1] = equipNum;
+                break;
+            }
+        }
+        equipNum = 0;
+        system("cls");
+    }
+    system("cls");
+    switchBack();
+    return equipment;
+}
+
+Screen bookingScreen(vector<Event> &events, vector<Venue> venues, User currentUser){
+    system("cls");
+    cout << "---------- Event Booking ----------";
+    switchBack();
+    system("cls");
+    Event event = Event();
+
+    // get event id
+    if (events.size() > 0) {
+        event.eventId = events.back().eventId++;
+    }
+    else {
+        event.eventId = 0;
+    }
+    
+    eventBooking(events, eventCount, eventAvail, EVENTS_FILE);
+
+
 }
